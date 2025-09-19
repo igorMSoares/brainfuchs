@@ -4,13 +4,16 @@ import Brainfuck.Evaluator (run)
 import Brainfuck.Parser (parse)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, stdout)
 
+quitCommand :: String
+quitCommand = ":q"
+
 repl :: IO ()
 repl = do
   putStr "> "
   line <- getLine
-  case line of
-    ":q" -> return () 
-    _ -> do
+  if line == quitCommand
+    then return ()
+    else do
       case parse line of
         Left err -> print err
         Right prog -> run prog
@@ -20,5 +23,6 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   putStrLn "--- A Brainfuck REPL ---"
-  putStrLn "Enter :q to quit."
+  putStrLn $ "Enter " ++ quitCommand ++ " to quit."
   repl
+

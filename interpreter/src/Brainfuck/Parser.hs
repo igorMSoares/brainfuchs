@@ -10,32 +10,36 @@ parse s =
   let cleaned = filter (`elem` "><+-.,[]") s
       indexed = zip [1 ..] cleaned
    in case parseTopLevel indexed of
-        Right (prog, []) -> Right prog 
+        Right (prog, []) -> Right prog
         Right (_, (col, c) : _) -> Left (UnmatchedBracket c col)
         Left err -> Left err
+
+parseSimple :: ([(Int, Char)] -> Either ParseError (Program, [(Int, Char)])) -> Char -> [(Int, Char)] -> Either ParseError (Program, [(Int, Char)])
+parseSimple recurse c cs = do
+  let instr = case c of
+        '>' -> IncrPtr
+        '<' -> DecrPtr
+        '+' -> IncrByte
+        '-' -> DecrByte
+        '.' -> Output
+        ',' -> Input
+        _   -> error "unreachable: parseSimple called with non-simple command" 
+  (prog, remaining) <- recurse cs
+  Right (instr : prog, remaining)
 
 parseTopLevel :: [(Int, Char)] -> Either ParseError (Program, [(Int, Char)])
 parseTopLevel [] = Right ([], [])
 parseTopLevel stream@((col, c) : cs) =
   case c of
-    '>' -> f IncrPtr
-    '<' -> f DecrPtr
-    '+' -> f IncrByte
-    '-' -> f DecrByte
-    '.' -> f Output
-    ',' -> f Input
     ']' -> Left (UnmatchedBracket ']' col)
     '[' -> do
       (loopProg, afterLoop) <- parseLoopBody cs
       (restProg, remaining) <- parseTopLevel afterLoop
       Right (Loop loopProg : restProg, remaining)
-  where
-    f instr = do
-      (prog, remaining) <- parseTopLevel cs
-      Right (instr : prog, remaining)
+    _ -> parseSimple parseTopLevel c cs
 
 parseLoopBody :: [(Int, Char)] -> Either ParseError (Program, [(Int, Char)])
-parseLoopBody [] = Left MismatchedBrackets -- Reached EOF inside a loop (unmatched '[')
+parseLoopBody [] = Left MismatchedBrackets 
 parseLoopBody stream@((col, c) : cs) =
   case c of
     ']' -> Right ([], cs) 
@@ -43,14 +47,4 @@ parseLoopBody stream@((col, c) : cs) =
       (nestedProg, afterNested) <- parseLoopBody cs
       (restProg, remaining) <- parseLoopBody afterNested
       Right (Loop nestedProg : restProg, remaining)
-    '>' -> f IncrPtr
-    '<' -> f DecrPtr
-    '+' -> f IncrByte
-    '-' -> f DecrByte
-    '.' -> f Output
-    ',' -> f Input
-  where
-    f instr = do
-      (prog, remaining) <- parseLoopBody cs
-      Right (instr : prog, remaining)
-
+    _ -> parseSimple parseLoopBody c cs

@@ -46,7 +46,6 @@ execute Input = do
     Left _ -> return ()
     Right char -> modify $ modifyCell $ const $ fromIntegral $ ord char
 
-
 execute (Loop prog) = do
   tape <- get
   when (currentCell tape /= 0) $ do
