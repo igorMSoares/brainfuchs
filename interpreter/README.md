@@ -1,57 +1,57 @@
 <div align="center">
 
-# Brainfuck Interpreter
+# Interpretador Brainfuck
 
 </div>
 
-This directory contains the source code and architectural documentation for the Haskell-based Brainfuck interpreter. This component serves as both a reusable library for the Brainfuck language and a standalone REPL (Read-Eval-Print-Loop) executable.
+Este diretório contém o código fonte e a documentação arquitetural para o interpretador Brainfuck baseado em Haskell. Este componente serve tanto como uma biblioteca reutilizável para a linguagem Brainfuck quanto como um executável REPL (Read-Eval-Print-Loop) standalone.
 
-## Architectural Documentation
+## Documentação Arquitetural
 
-For a complete understanding of the design and philosophy behind this interpreter, please consult the following documents:
+Para uma compreensão completa do design e filosofia por trás deste interpretador, consulte os seguintes documentos:
 
-- **`ARCHITECTURE.md`**: The high-level architectural blueprint. It details the guiding principles, data structures (AST, Zipper), and the monadic strategy used in the project.
-- **`MODULE_SPECIFICATIONS.md`**: The detailed specification for each Haskell module, outlining its purpose, public API, and architectural justification.
+- **`ARCHITECTURE.md`**: O blueprint arquitetural de alto nível. Detalha os princípios orientadores, estruturas de dados (AST, Zipper) e a estratégia monádica usada no projeto.
+- **`MODULE_SPECIFICATIONS.md`**: A especificação detalhada para cada módulo Haskell, delineando seu propósito, API pública e justificativa arquitetural.
 
-## Directory Structure
+## Estrutura de Diretórios
 
-The project follows the standard Haskell project structure to ensure a clean separation between the reusable library code and the executable code. This is critical for allowing other teams (e.g., the compiler team) to depend on the core Brainfuck logic without depending on the REPL implementation.
+O projeto segue a estrutura padrão de projetos Haskell para garantir uma separação limpa entre o código de biblioteca reutilizável e o código executável. Isso é crítico para permitir que outras equipes (ex., a equipe do compilador) dependam da lógica central Brainfuck sem depender da implementação do REPL.
 
 ```
 interpreter/
 ├── app/
-│   └── Main.hs             -- Executable source code (The REPL)
+│   └── Main.hs             -- Código fonte do executável (O REPL)
 │
 └── src/
-    └── Brainfuck/          -- Library source code
+    └── Brainfuck/          -- Código fonte da biblioteca
         ├── Evaluator.hs
         ├── Parser.hs
         └── Types.hs
 ```
 
-- **`src/`**: Contains the core library. This is the reusable component that defines the Brainfuck language, parser, and evaluation engine.
-- **`app/`**: Contains the executable entry point. The `Main.hs` file in this directory is responsible for wiring the library components together into an interactive REPL.
+- **`src/`**: Contém a biblioteca central. Este é o componente reutilizável que define a linguagem Brainfuck, parser e motor de avaliação.
+- **`app/`**: Contém o ponto de entrada do executável. O arquivo `Main.hs` neste diretório é responsável por conectar os componentes da biblioteca em um REPL interativo.
 
-## Building and Running
+## Compilação e Execução
 
-The project is designed to be built using a standard Haskell build tool like Cabal or Stack. The Cabal integration team is responsible for creating the necessary `package.yaml` or `.cabal` file.
+O projeto é projetado para ser compilado usando uma ferramenta padrão de build Haskell como Cabal ou Stack. A equipe de integração Cabal é responsável por criar o arquivo `package.yaml` ou `.cabal` necessário.
 
-### Manual Execution (For Development)
+### Execução Manual (Para Desenvolvimento)
 
-Before the formal build system is configured, the REPL can be run directly from the project root using `runghc`. You must specify the path to the library's source code (`-i` flag):
+Antes do sistema formal de build ser configurado, o REPL pode ser executado diretamente da raiz do projeto usando `runghc`. Você deve especificar o caminho para o código fonte da biblioteca (flag `-i`):
 
 ```bash
 runghc -iinterpreter/src interpreter/app/Main.hs
 ```
 
-### Formal Build (Future)
+### Build Formal (Futuro)
 
-Once the build system is in place, the project will be built and run with a standard command:
+Uma vez que o sistema de build esteja em funcionamento, o projeto será compilado e executado com um comando padrão:
 
 ```bash
-# Example using cabal
+# Exemplo usando cabal
 cabal run brainfuck-interpreter
 ```
 
 > [!NOTE]
-> This will be the standard procedure once the integration phase is complete.
+> Este será o procedimento padrão uma vez que a fase de integração esteja completa.

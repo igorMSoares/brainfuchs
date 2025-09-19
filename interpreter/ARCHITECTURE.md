@@ -1,24 +1,22 @@
-## 1. Guiding Principles
+Este documento delineia uma arquitetura de software completa e teoricamente sólida para um interpretador REPL Brainfuck em Haskell. O design é orientado pelos seguintes princípios centrais:
 
-This document outlines a theoretically sound software architecture for a Brainfuck REPL interpreter in Haskell. The design is guided by the following core principles:
-
-- **Correctness and Robustness**: The design must be logically sound and prioritize correctness.
-- **Making Illegal States Unrepresentable**: The type system is our primary design tool. We will structure our data types to encode invariants and prevent invalid program states at compile time.
-- **Compositionality and Abstraction**: The system will be built from small, composable, and pure functions where possible. Data abstraction will be used to decouple the logical model from its underlying representation.
-- **Idiomatic Haskell**: The design will leverage standard functional patterns, including monads, monad transformers, and functional data structures, to manage state and effects cleanly.
+- **Corretude e Robustez**: O design deve ser logicamente sólido e priorizar a corretude.
+- **Tornar Estados Ilegais Irrepresentáveis**: O sistema de tipos é nossa ferramenta principal de design. Estruturaremos nossos tipos de dados para codificar invariantes e prevenir estados inválidos do programa em tempo de compilação.
+- **Composicionalidade e Abstração**: O sistema será construído a partir de funções pequenas, componíveis e puras sempre que possível. A abstração de dados será usada para desacoplar o modelo lógico de sua representação subjacente.
+- **Haskell Idiomático**: O design aproveitará padrões funcionais padrão, incluindo mônadas, transformadores de mônadas e estruturas de dados funcionais, para gerenciar estado e efeitos de forma limpa.
 
 > [!IMPORTANT]
-> This architecture is an unambiguous blueprint. It contains no implementation code, only type definitions, function signatures, and justifications for all significant design decisions.
+> Esta arquitetura é um blueprint inequívoco. Ela não contém código de implementação, apenas definições de tipos, assinaturas de funções e justificativas para todas as decisões de design significativas.
 
-## 2. Core Data Types: The Abstract Syntax Tree (AST)
+## 2. Tipos de Dados Centrais: A Árvore de Sintaxe Abstrata (AST)
 
-The first step is to model the Brainfuck language itself. A raw string of commands is inadequate as it requires repeated, inefficient parsing. We will represent a parsed Brainfuck program as an Abstract Syntax Tree (AST), which in this case is a simple list of instructions.
+O primeiro passo é modelar a linguagem Brainfuck em si. Uma string bruta de comandos é inadequada, pois requer parsing repetido e ineficiente. Representaremos um programa Brainfuck parseado como uma Árvore de Sintaxe Abstrata (AST), que neste caso é uma lista simples de instruções.
 
-> [!NOTE] > **Note on source characters**: The parser shall only consider the eight command characters `><+-.,[]. Any other character found in the source input will be treated as a comment and ignored.
+> [!NOTE] > **Nota sobre caracteres de origem**: O parser deve considerar apenas os oito caracteres de comando `><+-.,[`. Qualquer outro caractere encontrado na entrada de origem será tratado como comentário e ignorado.
 
-### 2.1. The Instruction Type
+### 2.1. O Tipo Instruction
 
-The eight Brainfuck commands will be represented by a sum type. This approach makes the program structure explicit and allows the evaluator to dispatch on the instruction type, preventing the possibility of interpreting invalid characters.
+Os oito comandos Brainfuck serão representados por um tipo soma. Esta abordagem torna a estrutura do programa explícita e permite que o avaliador despache no tipo de instrução, prevenindo a possibilidade de interpretar caracteres inválidos.
 
 ```haskell
 data Instruction
@@ -31,87 +29,100 @@ data Instruction
   | Loop Program -- [ ... ]
 ```
 
-#### 2.1.1. Instruction Semantics
+#### 2.1.1. Semântica das Instruções
 
-**Input Operation at EOF**: The behavior of the `,` (Input) command upon reaching the End-of-File (EOF) must be clearly defined. The specified behavior is: Upon reaching EOF, the byte at the data pointer remains unchanged. Other common conventions (e.g., storing 0 or -1) will not be used.
+**Operação de Entrada no EOF**: O comportamento do comando `,` (Input) ao atingir o Fim-do-Arquivo (EOF) deve ser claramente definido. O comportamento especificado é: Ao atingir EOF, o byte no ponteiro de dados permanece inalterado. Outras convenções comuns (ex., armazenar 0 ou -1) não serão usadas.
 
-### 2.2. The Program Type
+### 2.2. O Tipo Program
 
-A Brainfuck program is simply a sequence of instructions.
+Um programa Brainfuck é simplesmente uma sequência de instruções.
 
 ```haskell
 type Program = [Instruction]
 ```
 
-### 2.3. Justification for Loop Program
+### 2.3. Justificativa para Loop Program
 
-A critical design decision is how to represent the `[` and `]` commands. A naive approach would be to have separate `JumpFwd` and `JumpBwd` instructions. This, however, would force the runtime evaluator to perform a linear scan to find the matching bracket, an O(n) operation for each loop iteration.
+Uma decisão crítica de design é como representar os comandos `[` e `]`. Uma abordagem ingênua seria ter instruções `JumpFwd` e `JumpBwd` separadas. Isso, no entanto, forçaria o avaliador runtime a realizar uma varredura linear para encontrar o colchete correspondente, uma operação O(n) para cada iteração do loop.
 
-Our chosen representation, `Loop Program`, is a result of a preprocessing/parsing step. The parser will be responsible for matching brackets and constructing a nested `Program` structure for the loop's body. This makes the program's block structure explicit in the type system. The evaluator for a `Loop` instruction will then repeatedly execute the nested `Program` so long as the current memory cell is non-zero. This design transforms an O(n) runtime scan into a structural recursion, which is far more efficient and elegant.
+Nossa representação escolhida, `Loop Program`, é resultado de uma etapa de pré-processamento/parsing. O parser será responsável por fazer o matching dos colchetes e construir uma estrutura `Program` aninhada para o corpo do loop. Isso torna a estrutura de blocos do programa explícita no sistema de tipos. O avaliador para uma instrução `Loop` então executará repetidamente o `Program` aninhado enquanto a célula de memória atual for diferente de zero. Este design transforma uma varredura runtime O(n) em uma recursão estrutural, que é muito mais eficiente e elegante.
 
-## 3. The Memory Tape Model: A Zipper
+### 2.4. Gerenciamento da Profundidade de Aninhamento de Loops
 
-The Brainfuck machine model specifies a tape of memory cells. A naive representation, such as a `Data.Map Int Word8` or a simple list `[Word8]`, presents significant drawbacks.
+Um ponto comum de confusão é como a profundidade de loops aninhados (ex: `[[...]]`) é gerenciada. É crucial entender que a profundidade de aninhamento **não é gerenciada por uma estrutura de dados explícita** dentro dos nossos tipos `Program` ou `Tape` (como uma lista de contadores ou `[()]`).
 
-- **Map**: While offering O(log n) access, it does not elegantly capture the notion of a "current cell" or movement. The concepts of "left" and "right" are not intrinsic to its structure.
-- **`[Word8]` with an index**: This is the classic imperative approach. Managing an index is stateful and prone to off-by-one errors.
-- **`[Word8]` without an index**: Moving right (`tail`) is O(1), but moving left requires traversing and rebuilding the list, an O(n) operation.
+Em vez disso, a profundidade de aninhamento é tratada de forma **implícita e elegante** pelo próprio mecanismo de chamada de função do Haskell:
 
-### 3.1. The Zipper Data Structure
+1. **Durante a Análise (Parsing)**: O parser usa chamadas de função recursivas para construir a estrutura aninhada de `Loop Program`. Quando o parser encontra um `[`, ele se chama recursivamente para analisar o corpo do loop interno. Um `[` aninhado resulta em outra chamada recursiva. A profundidade dessas chamadas aninhadas é gerenciada automaticamente pela pilha de chamadas (call stack) do runtime do GHC.
 
-The correct functional data structure for this problem is the **Zipper**. A zipper provides a way to traverse a data structure while maintaining a "focus" or "cursor" on a specific element, allowing for efficient, localized updates. For a list, a zipper consists of the focused element, a list of elements to its left (stored in reverse), and a list of elements to its right.
+2. **Durante a Avaliação**: Da mesma forma, a função `execute` para uma instrução `Loop` é recursiva. Ela se chama para reavaliar a condição do loop. Se o corpo do loop (`Program`) contiver outra instrução `Loop`, a função `eval` levará naturalmente a uma chamada recursiva aninhada para `execute`.
 
-This structure makes moving the focus left or right an O(1) operation, as it only involves moving an element from the head of one list to the head of another.
+> [!NOTE]
+> Esta abordagem é um benefício direto do nosso design funcional e recursivo. A pilha de chamadas é o mecanismo natural e correto para rastrear esse tipo de profundidade aninhada, eliminando a necessidade de um gerenciamento de pilha manual complexo e propenso a erros. A estrutura do programa espelha diretamente o caminho de execução da avaliação.
 
-### 3.2. Type Definition
+## 3. O Modelo de Fita de Memória: Um Zipper
 
-We define a generic `Tape` using the zipper pattern. The cells will be of type `Word8` to precisely match the Brainfuck specification of byte-sized cells.
+O modelo de máquina Brainfuck especifica uma fita de células de memória. Uma representação ingênua, como um `Data.Map Int Word8` ou uma lista simples `[Word8]`, apresenta desvantagens significativas.
+
+- **Map**: Embora ofereça acesso O(log n), não captura elegantemente a noção de uma "célula atual" ou movimento. Os conceitos de "esquerda" e "direita" não são intrínsecos à sua estrutura.
+- **`[Word8]` com um índice**: Esta é a abordagem imperativa clássica. Gerenciar um índice é stateful e propenso a erros off-by-one.
+- **`[Word8]` sem índice**: Mover para a direita (`tail`) é O(1), mas mover para a esquerda requer percorrer e reconstruir a lista, uma operação O(n).
+
+### 3.1. A Estrutura de Dados Zipper
+
+A estrutura de dados funcional correta para este problema é o **Zipper**. Um zipper fornece uma maneira de percorrer uma estrutura de dados enquanto mantém um "foco" ou "cursor" em um elemento específico, permitindo atualizações eficientes e localizadas. Para uma lista, um zipper consiste no elemento focado, uma lista de elementos à sua esquerda (armazenada em reverso), e uma lista de elementos à sua direita.
+
+Esta estrutura torna o movimento do foco para a esquerda ou direita uma operação O(1), pois envolve apenas mover um elemento da cabeça de uma lista para a cabeça de outra.
+
+### 3.2. Definição de Tipo
+
+Definimos uma `Tape` genérica usando o padrão zipper. As células serão do tipo `Word8` para corresponder precisamente à especificação Brainfuck de células de tamanho byte.
 
 ```haskell
--- A Tape is a Zipper focused on the current memory cell.
--- The list on the left is reversed for efficient O(1) prepending.
+-- Uma Tape é um Zipper focado na célula de memória atual.
+-- A lista à esquerda está reversa para prepend O(1) eficiente.
 data Tape a = Tape [a] a [a]
 ```
 
-#### 3.2.1. Simulating Infinity
+#### 3.2.1. Simulando Infinitude
 
-The standard list-based Zipper is a finite structure. The Brainfuck model, however, assumes an infinite tape of cells initialized to zero. A naive Zipper implementation would crash upon moving past the constructed ends of its internal lists. To correctly model the infinite tape and prevent runtime errors, the functions for moving the tape's focus must be total.
+O Zipper baseado em lista padrão é uma estrutura finita. O modelo Brainfuck, no entanto, assume uma fita infinita de células inicializadas com zero. Uma implementação ingênua de Zipper travaria ao mover além das extremidades construídas de suas listas internas. Para modelar corretamente a fita infinita e prevenir erros runtime, as funções para mover o foco da fita devem ser totais.
 
-The required functions and their signatures are:
+As funções necessárias e suas assinaturas são:
 
 ```haskell
--- The default value for tape cells, used to extend the tape.
+-- O valor padrão para células da fita, usado para estender a fita.
 defaultValue :: Word8
 defaultValue = 0
 
--- Moves the focus one cell to the left.
+-- Move o foco uma célula para a esquerda.
 moveLeft :: Tape Word8 -> Tape Word8
 
--- Moves the focus one cell to the right.
+-- Move o foco uma célula para a direita.
 moveRight :: Tape Word8 -> Tape Word8
 ```
 
-The implementation of `moveLeft` and `moveRight` must handle the case where the corresponding list (left or right) is empty. In such a case, the list on the other side of the focus must be prepended with the `defaultValue` (0) to simulate the extension of the infinite tape. This ensures that a valid Brainfuck program consisting of any sequence of `<` and `>` commands can never crash the interpreter.
+A implementação de `moveLeft` e `moveRight` deve lidar com o caso onde a lista correspondente (esquerda ou direita) está vazia. Em tal caso, a lista do outro lado do foco deve ser prepended com o `defaultValue` (0) para simular a extensão da fita infinita. Isso garante que um programa Brainfuck válido consistindo de qualquer sequência de comandos `<` e `>` nunca pode travar o interpretador.
 
-#### 3.2.2. Cell Semantics
+#### 3.2.2. Semântica das Células
 
-The choice of `Word8` for tape cells implies specific, critical behavior for the `IncrByte` and `DecrByte` operations. This behavior must be made explicit.
+A escolha de `Word8` para células da fita implica comportamento específico e crítico para as operações `IncrByte` e `DecrByte`. Este comportamento deve ser explicitado.
 
-- **Overflow**: Incrementing a cell containing the value 255 shall result in 0.
-- **Underflow**: Decrementing a cell containing the value 0 shall result in 255.
+- **Overflow**: Incrementar uma célula contendo o valor 255 deve resultar em 0.
+- **Underflow**: Decrementar uma célula contendo o valor 0 deve resultar em 255.
 
-This wrapping (modular arithmetic) behavior is a core part of the Brainfuck specification and must be preserved by the interpreter.
+Este comportamento de wrapping (aritmética modular) é uma parte central da especificação Brainfuck e deve ser preservado pelo interpretador.
 
-## 4. The Monadic Strategy: StateT (Tape Word8) IO
+## 4. A Estratégia Monádica: StateT (Tape Word8) IO
 
-The interpreter's execution involves two distinct effects:
+A execução do interpretador envolve dois efeitos distintos:
 
-1. **State Management**: The memory tape (`Tape Word8`) is a state that is threaded through the computation.
-2. **Input/Output**: The `,` and `.` commands require interaction with the outside world.
+1. **Gerenciamento de Estado**: A fita de memória (`Tape Word8`) é um estado que é passado através da computação.
+2. **Entrada/Saída**: Os comandos `,` e `.` requerem interação com o mundo externo.
 
-The standard Haskell approach for combining these effects is to use a monad transformer. The `StateT` transformer layers state management on top of an underlying `IO` monad.
+A abordagem padrão Haskell para combinar esses efeitos é usar um transformador de mônada. O transformador `StateT` camada o gerenciamento de estado sobre uma mônada `IO` subjacente.
 
-### 4.1. Type Definition
+### 4.1. Definição de Tipo
 
 ```haskell
 import Control.Monad.State.Strict (StateT)
@@ -120,71 +131,69 @@ import Data.Word (Word8)
 type Brainfuck a = StateT (Tape Word8) IO a
 ```
 
-**Justification**: This design provides a clean separation of concerns. The `StateT` layer provides `get`, `put`, and `modify` functions for manipulating the tape, while `liftIO` allows us to perform I/O actions from within the `Brainfuck` monad. This avoids manual state passing and isolates effects within a well-understood abstraction. We choose the strict version of `StateT` as there is no benefit to laziness in this context.
+**Justificativa**: Este design fornece uma separação limpa de responsabilidades. A camada `StateT` fornece funções `get`, `put`, e `modify` para manipular a fita, enquanto `liftIO` nos permite realizar ações I/O de dentro da mônada `Brainfuck`. Isso evita passagem manual de estado e isola efeitos dentro de uma abstração bem compreendida. Escolhemos a versão strict de `StateT` pois não há benefício da laziness neste contexto.
 
-## 5. Main Function Signatures
+## 5. Assinaturas das Funções Principais
 
-Type-Driven Development dictates that we first define the types of our core functions. These signatures serve as a contract and guide the implementation.
+O Desenvolvimento Orientado por Tipos dita que primeiro definamos os tipos de nossas funções centrais. Essas assinaturas servem como um contrato e guiam a implementação.
 
 ### 5.1. Parsing
 
-The parser is responsible for translating the raw source code into our `Program` AST. It is a pure function that can either succeed or fail.
+O parser é responsável por traduzir o código fonte bruto em nossa AST `Program`. É uma função pura que pode tanto ter sucesso quanto falhar.
 
 ```haskell
--- A type to represent parsing errors, including location.
+-- Um tipo para representar erros de parsing, incluindo localização.
 data ParseError
   = MismatchedBrackets
-  | UnmatchedBracket Char Int -- The character and its position
+  | UnmatchedBracket Char Int -- O caractere e sua posição
 
--- The parser.
+-- O parser.
 parse :: String -> Either ParseError Program
 ```
 
-#### 5.1.1. Parsing Strategy
+#### 5.1.1. Estratégia de Parsing
 
-The parser must robustly handle nested structures and malformed input. The recommended strategy is a recursive descent parser.
+O parser deve lidar robustamente com estruturas aninhadas e entrada malformada. A estratégia recomendada é um parser de descida recursiva.
 
-1. The main parsing function will iterate through the input string, consuming characters and building a `[Instruction]`.
-2. Upon encountering a `[` character, the parser will recursively call itself to parse the body of the loop.
-3. Upon encountering a `]` character, the recursive call will terminate and return the parsed `Program` for the loop body.
+1. A função principal de parsing iterará através da string de entrada, consumindo caracteres e construindo uma `[Instruction]`.
+2. Ao encontrar um caractere `[`, o parser se chamará recursivamente para fazer o parse do corpo do loop.
+3. Ao encontrar um caractere `]`, a chamada recursiva terminará e retornará o `Program` parseado para o corpo do loop.
 
-To ensure correctness, the parser must track bracket nesting. A simple stack of open bracket positions can be used. Pushing on `[` and popping on `]`. An attempt to pop from an empty stack indicates an unmatched closing bracket. If the stack is not empty at the end of parsing, there is an unmatched opening bracket.
+Para garantir corretude, o parser deve rastrear o aninhamento de colchetes. Uma pilha simples de posições de colchetes abertos pode ser usada. Push em `[` e pop em `]`. Uma tentativa de pop de uma pilha vazia indica um colchete de fechamento sem correspondência. Se a pilha não estiver vazia no final do parsing, há um colchete de abertura sem correspondência.
 
 > [!WARNING]
-> The parser must fail with a descriptive `ParseError`, including the character and position where possible, for any malformed input (e.g., `]`, `[[]`, `[]`).
+> O parser deve falhar com um `ParseError` descritivo, incluindo o caractere e posição quando possível, para qualquer entrada malformada (ex., `]`, `[[]`, `[]`).
 
-### 5.2. Evaluation
+### 5.2. Avaliação
 
-The evaluator executes a `Program`. The `eval` function is the main recursive loop, and `execute` handles a single instruction. These functions live within our `Brainfuck` monad.
+O avaliador executa um `Program`. A função `eval` é o loop recursivo principal, e `execute` lida com uma única instrução. Essas funções vivem dentro de nossa mônada `Brainfuck`.
 
 ```haskell
--- The main evaluation loop for a program.
+-- O loop principal de avaliação para um programa.
 eval :: Program -> Brainfuck ()
 
--- Executes a single instruction.
+-- Executa uma única instrução.
 execute :: Instruction -> Brainfuck ()
 ```
 
-### 5.3. Top-Level Execution
+### 5.3. Execução de Alto Nível
 
-The `run` function serves as the entry point for executing a parsed program. It sets up the initial state (a conceptually infinite tape of zeros) and executes the `Brainfuck` monadic computation.
+A função `run` serve como ponto de entrada para executar um programa parseado. Ela configura o estado inicial (uma fita conceitualmente infinita de zeros) e executa a computação monádica `Brainfuck`.
 
 ```haskell
--- Runs a program, providing the initial tape state.
+-- Executa um programa, fornecendo o estado inicial da fita.
 run :: Program -> IO ()
 ```
 
-### 5.4. The REPL
+### 5.4. O REPL
 
-The Read-Eval-Print-Loop is the user-facing interface. It orchestrates the process of reading user input, parsing, running, and looping.
+O Read-Eval-Print-Loop é a interface voltada ao usuário. Ele orquestra o processo de ler entrada do usuário, fazer parsing, executar, e fazer loop.
 
 ```haskell
--- The main REPL loop.
+-- O loop principal do REPL.
 repl :: IO ()
 ```
 
-#### 5.4.1. I/O Considerations
+#### 5.4.1. Considerações de I/O
 
-For a responsive and interactive REPL, the default I/O buffering of `stdout` in Haskell is unsuitable. It is mandated that at the start of the `repl`'s execution, the buffering mode for `stdout` be set to `NoBuffering`. This will ensure that output from the `.` command is displayed on the screen immediately, rather than being held in a buffer.
-
----
+Para um REPL responsivo e interativo, o buffering padrão de I/O do `stdout` em Haskell é inadequado. É mandatório que no início da execução do `repl`, o modo de buffering para `stdout` seja definido como `NoBuffering`. Isso garantirá que a saída do comando `.` seja exibida na tela imediatamente, em vez de ser mantida em um buffer.

@@ -1,21 +1,21 @@
-# Module Specifications for Brainfuck Interpreter
+# Especificações de Módulos para o Interpretador Brainfuck
 
-This document specifies the purpose and public interface for each Haskell module that comprises the Brainfuck interpreter. The development team is to implement the logic within these modules according to the main `ARCHITECTURE.md` document.
+Este documento especifica o propósito e a interface pública para cada módulo Haskell que compõe o interpretador Brainfuck. A equipe de desenvolvimento deve implementar a lógica dentro desses módulos de acordo com o documento principal `ARCHITECTURE.md`.
 
 > [!IMPORTANT]
-> Each section includes an **Architectural Justification** subsection, explaining the design decisions behind the modular decomposition. This rationale is as important as the specification itself, as it guides the implementation to align with the project's core principles.
+> Cada seção inclui uma subseção de **Justificativa Arquitetural**, explicando as decisões de design por trás da decomposição modular. Esta fundamentação é tão importante quanto a especificação em si, pois orienta a implementação para se alinhar com os princípios centrais do projeto.
 
-## File: `src/Brainfuck/Types.hs`
+## Arquivo: `src/Brainfuck/Types.hs`
 
-**Purpose**: To define the core, shared data types for the entire interpreter. This module should have minimal dependencies.
+**Propósito**: Definir os tipos de dados centrais e compartilhados para todo o interpretador. Este módulo deve ter dependências mínimas.
 
-### Key Responsibilities:
+### Responsabilidades Principais:
 
-- Define the Abstract Syntax Tree (AST) for Brainfuck programs (`Instruction`, `Program`).
-- Define the Zipper-based `Tape` data structure for the memory model.
-- Define the `ParseError` type for the parser.
+- Definir a Árvore de Sintaxe Abstrata (AST) para programas Brainfuck (`Instruction`, `Program`).
+- Definir a estrutura de dados `Tape` baseada em Zipper para o modelo de memória.
+- Definir o tipo `ParseError` para o parser.
 
-### Primary Exports (Public API):
+### Exportações Principais (API Pública):
 
 ```haskell
 module Brainfuck.Types
@@ -26,28 +26,28 @@ module Brainfuck.Types
 ) where
 ```
 
-### Architectural Justification:
+### Justificativa Arquitetural:
 
-- **Foundation of the Architecture**: This module is the bedrock of the entire interpreter. By isolating the fundamental data types into a separate, dependency-free module, we establish a stable foundation. All other modules (Parser, Evaluator, Main) will depend on Types, but Types will depend on none of them.
+- **Fundação da Arquitetura**: Este módulo é a base de todo o interpretador. Ao isolar os tipos de dados fundamentais em um módulo separado e livre de dependências, estabelecemos uma fundação estável. Todos os outros módulos (Parser, Evaluator, Main) dependerão de Types, mas Types não dependerá de nenhum deles.
 
-- **Preventing Circular Dependencies**: This one-way dependency flow is critical. It makes the codebase easier to reason about and prevents circular dependencies, which can complicate compilation and introduce subtle bugs. For example, the Parser needs to produce `Instruction` values, and the Evaluator needs to consume them. If these types were defined within either of those modules, a circular dependency would be unavoidable.
+- **Prevenindo Dependências Circulares**: Este fluxo de dependência unidirecional é crítico. Torna o código mais fácil de raciocinar e previne dependências circulares, que podem complicar a compilação e introduzir bugs sutis. Por exemplo, o Parser precisa produzir valores `Instruction`, e o Evaluator precisa consumi-los. Se esses tipos fossem definidos dentro de qualquer um desses módulos, uma dependência circular seria inevitável.
 
-- **Single Source of Truth**: Placing these definitions in one location ensures there is a single, unambiguous source of truth for what constitutes a `Program` or a `Tape`. This clarity is vital for all teams interacting with the interpreter's core logic.
+- **Fonte Única da Verdade**: Colocar essas definições em um local garante que há uma fonte única e inequívoca da verdade para o que constitui um `Program` ou uma `Tape`. Esta clareza é vital para todas as equipes interagindo com a lógica central do interpretador.
 
 ---
 
-## File: `src/Brainfuck/Parser.hs`
+## Arquivo: `src/Brainfuck/Parser.hs`
 
-**Purpose**: To contain all logic related to parsing a string of Brainfuck source code into a `Program` AST.
+**Propósito**: Conter toda a lógica relacionada ao parsing de uma string de código fonte Brainfuck em uma AST `Program`.
 
-### Key Responsibilities:
+### Responsabilidades Principais:
 
-- Implement a recursive descent parser.
-- Handle bracket matching using a stack, as specified in the architecture.
-- Ignore non-command characters.
-- Produce descriptive `ParseError` values on failure.
+- Implementar um parser de descida recursiva.
+- Lidar com matching de colchetes usando uma pilha, conforme especificado na arquitetura.
+- Ignorar caracteres que não sejam comandos.
+- Produzir valores `ParseError` descritivos em caso de falha.
 
-### Primary Exports (Public API):
+### Exportações Principais (API Pública):
 
 ```haskell
 module Brainfuck.Parser
@@ -56,83 +56,79 @@ module Brainfuck.Parser
 
 import Brainfuck.Types (Program, ParseError)
 
--- The main parser function.
+-- A função principal do parser.
 parse :: String -> Either ParseError Program
 ```
 
-### Architectural Justification:
+### Justificativa Arquitetural:
 
-- **Separation of Concerns (Purity)**: Parsing is a transformation from unstructured text to a structured data type (the AST). This is a fundamentally pure computation. By isolating it in its own module, we ensure this logic remains free of I/O and state-management side effects. A pure `parse` function is deterministic, easier to reason about, and significantly easier to test.
+- **Separação de Responsabilidades (Pureza)**: Parsing é uma transformação de texto não estruturado para um tipo de dados estruturado (a AST). Esta é uma computação fundamentalmente pura. Ao isolá-la em seu próprio módulo, garantimos que esta lógica permaneça livre de efeitos colaterais de I/O e gerenciamento de estado. Uma função `parse` pura é determinística, mais fácil de raciocinar e significativamente mais fácil de testar.
 
-- **Enabling Independent Testing**: The testing teams (Nathanael and Gabriela) can write property-based tests for the parser that are completely independent of the evaluator or the REPL. They can verify properties like `eval (parse s) == eval (parse (s ++ "some comment"))` without needing a running REPL.
+- **Habilitando Testes Independentes**: As equipes de testes (Nathanael e Gabriela) podem escrever testes baseados em propriedades para o parser que são completamente independentes do avaliador ou do REPL. Eles podem verificar propriedades como `eval (parse s) == eval (parse (s ++ "algum comentário"))` sem precisar de um REPL em execução.
 
-- **Decoupling from Evaluation**: The parser's only responsibility is to validate syntax and produce a valid AST. It should have no knowledge of how that AST will be executed. This decoupling means we could, in the future, reuse this same parser for a Brainfuck compiler (the task of Bira/Ryu's team) without modification.
+- **Desacoplamento da Avaliação**: A única responsabilidade do parser é validar sintaxe e produzir uma AST válida. Ele não deve ter conhecimento de como essa AST será executada. Este desacoplamento significa que poderíamos, no futuro, reutilizar este mesmo parser para um compilador Brainfuck (a tarefa da equipe de Bira/Ryu) sem modificação.
 
 ---
 
-## File: `src/Brainfuck/Evaluator.hs`
+## Arquivo: `src/Brainfuck/Evaluator.hs`
 
-**Purpose**: To contain the runtime logic for interpreting a parsed `Program`. This is the "engine" of the interpreter.
+**Propósito**: Conter a lógica de runtime para interpretar um `Program` parseado. Esta é a "engine" do interpretador.
 
-### Key Responsibilities:
+### Responsabilidades Principais:
 
-- Define the Brainfuck monad transformer stack (`StateT (Tape Word8) IO`).
-- Implement the total functions for tape manipulation (`moveLeft`, `moveRight`, `modifyCell`, etc.).
-- Implement the `eval` and `execute` functions that walk the AST and perform the specified operations.
-- Handle the specified semantics for all instructions, including `Word8` wrapping and EOF behavior. The team of Arthur and Yasmin will focus on the implementation details of the `,` (Input) command within this module's `execute` function.
+- Definir a pilha de transformadores de mônada Brainfuck (`StateT (Tape Word8) IO`).
+- Implementar as funções totais para manipulação da fita (`moveLeft`, `moveRight`, `modifyCell`, etc.).
+- Implementar as funções `eval` e `execute` que percorrem a AST e executam as operações especificadas.
+- Lidar com a semântica especificada para todas as instruções, incluindo wrapping de `Word8` e comportamento EOF. A equipe de Arthur e Yasmin focará nos detalhes de implementação do comando `,` (Input) dentro da função `execute` deste módulo.
 
-### Primary Exports (Public API):
+### Exportações Principais (API Pública):
 
 ```haskell
 module Brainfuck.Evaluator
-( run -- The primary entry point to execute a program
+( run -- O ponto de entrada principal para executar um programa
 ) where
 
 import Brainfuck.Types (Program)
 
--- Runs a program, providing the initial tape state and executing the monad.
+-- Executa um programa, fornecendo o estado inicial da fita e executando a mônada.
 run :: Program -> IO ()
 ```
 
-### Architectural Justification:
+### Justificativa Arquitetural:
 
-- **Encapsulating Effects**: This module is the designated home for all complex, effectful logic. The `StateT (Tape Word8) IO` monad stack encapsulates the two primary effects: state changes to the tape and interaction with the outside world (I/O). No other module should be concerned with these details.
+- **Encapsulando Efeitos**: Este módulo é o lar designado para toda lógica complexa e com efeitos. A pilha de mônadas `StateT (Tape Word8) IO` encapsula os dois efeitos primários: mudanças de estado na fita e interação com o mundo externo (I/O). Nenhum outro módulo deve se preocupar com esses detalhes.
 
-- **Clear Task Delegation**: By defining a clear home for the evaluation engine, we create a well-defined workspace for the sub-team (Arthur and Yasmin) responsible for the `,` command. They can work on their specific instruction's logic within the `execute` function without interfering with the work on parsing or the REPL shell.
+- **Delegação Clara de Tarefas**: Ao definir um lar claro para o motor de avaliação, criamos um espaço de trabalho bem definido para a sub-equipe (Arthur e Yasmin) responsável pelo comando `,`. Eles podem trabalhar na lógica específica de sua instrução dentro da função `execute` sem interferir no trabalho de parsing ou do shell REPL.
 
-- **Hiding the Tape Implementation**: The `run` function is the sole public entry point. It takes a `Program` and produces an `IO` action. The internal use of the `Tape` and the `StateT` monad is an implementation detail hidden from the outside world (e.g., `Main.hs`). This maintains a strong abstraction barrier.
+- **Ocultando a Implementação da Tape**: A função `run` é o único ponto de entrada público. Ela recebe um `Program` e produz uma ação `IO`. O uso interno da `Tape` e da mônada `StateT` é um detalhe de implementação oculto do mundo externo (ex., `Main.hs`). Isso mantém uma forte barreira de abstração.
 
 ---
 
-## File: `src/Main.hs`
+## Arquivo: `app/Main.hs`
 
-**Purpose**: To serve as the executable entry point for the application. This module handles all direct user interaction and orchestrates the other components.
+**Propósito**: Servir como ponto de entrada executável para a aplicação. Este módulo lida com toda interação direta do usuário e orquestra os outros componentes.
 
-### Key Responsibilities:
+### Responsabilidades Principais:
 
-- Implement the Read-Eval-Print-Loop (REPL).
-- Set the I/O buffering mode for `stdout` to `NoBuffering`.
-- Read lines of input from the user.
-- Call `Brainfuck.Parser.parse` to parse the input.
-- Call `Brainfuck.Evaluator.run` to execute the parsed program.
-- Handle user commands (e.g., for quitting the REPL).
-- Print results and errors to the console.
+- Implementar o Read-Eval-Print-Loop (REPL).
+- Definir o modo de buffering de I/O para `stdout` como `NoBuffering`.
+- Ler linhas de entrada do usuário.
+- Chamar `Brainfuck.Parser.parse` para fazer parse da entrada.
+- Chamar `Brainfuck.Evaluator.run` para executar o programa parseado.
+- Lidar com comandos do usuário (ex., para sair do REPL).
+- Imprimir resultados e erros no console.
 
-### Primary Exports (Public API):
+### Exportações Principais (API Pública):
 
 ```haskell
 module Main (main) where
 
--- The main entry point of the program.
+-- O ponto de entrada principal do programa.
 main :: IO ()
 ```
 
-### Architectural Justification:
+### Justificativa Arquitetural:
 
-- **The "Wiring" Layer**: This module is intentionally "thin." It contains no core application logic. Its sole purpose is to connect, or "wire," the other components together. It reads a string, passes it to the Parser, and if successful, passes the resulting `Program` to the Evaluator.
+- **A Camada de "Fiação"**: Este módulo é intencionalmente "fino". Ele não contém lógica central da aplicação. Seu único propósito é conectar, ou "fazer a fiação", dos outros componentes. Ele lê uma string, passa para o Parser, e se bem-sucedido, passa o `Program` resultante para o Evaluator.
 
-- **UI/Logic Separation**: This structure strictly separates the user interface (the command-line REPL) from the application's core logic. This is a critical design principle. Should the GUI team (Ana/Bruno C., Alexia/Bruno F.) later need to create a graphical version, they could reuse the `Brainfuck.Parser` and `Brainfuck.Evaluator` modules without any changes, simply providing a different `Main` module that wires them into a graphical toolkit.
-
-- **Clear Entry Point**: It provides a single, unambiguous entry point (`main`) for the teams handling Cabal integration (Igor/Ana, Guilherme/Natan) to configure as the project's executable.
-
----
+- **Separação UI/Lógica**: Esta estrutura separa estritamente a interface do usuário (o REPL de linha de comando) da lógica central da aplicação. Este é um princípio crítico de design. Se a equipe de GUI precisar posteriormente criar uma versão gráfica, eles poderiam reutilizar os módulos `Brainfuck.Parser` e `Brainfuck.Evaluator` sem mudanças, simplesmente fornecendo um módulo `Main` diferente que os conecta a um toolkit gráfico.
