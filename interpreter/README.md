@@ -19,18 +19,21 @@ O projeto segue a estrutura padrão de projetos Haskell para garantir uma separa
 
 ```
 interpreter/
-├── app/
-│   └── Main.hs             -- Código fonte do executável (O REPL)
+├── ARCHITECTURE.md
+├── MODULE_SPECIFICATIONS.md
+├── README.md
 │
-└── src/
-    └── Brainfuck/          -- Código fonte da biblioteca
-        ├── Evaluator.hs
-        ├── Parser.hs
-        └── Types.hs
+└───src
+    ├── Brainfuck
+    │   ├── Evaluator.hs      <-- For evaluation logic & state
+    │   ├── Parser.hs         <-- For parsing logic
+    │   └── Types.hs          <-- For core data type definitions
+    │
+    └── Main.hs               <-- Executable entry point (REPL)
 ```
 
-- **`src/`**: Contém a biblioteca central. Este é o componente reutilizável que define a linguagem Brainfuck, parser e motor de avaliação.
-- **`app/`**: Contém o ponto de entrada do executável. O arquivo `Main.hs` neste diretório é responsável por conectar os componentes da biblioteca em um REPL interativo.
+- **`src/Brainfuck`**: Contém a biblioteca central. Este é o componente reutilizável que define a linguagem Brainfuck, parser e motor de avaliação.
+- **`src/Main`**: Contém o ponto de entrada do executável. O arquivo `Main.hs` neste diretório é responsável por conectar os componentes da biblioteca em um REPL interativo.
 
 ## Compilação e Execução
 
@@ -41,7 +44,7 @@ O projeto é projetado para ser compilado usando uma ferramenta padrão de build
 Antes do sistema formal de build ser configurado, o REPL pode ser executado diretamente da raiz do projeto usando `runghc`. Você deve especificar o caminho para o código fonte da biblioteca (flag `-i`):
 
 ```bash
-runghc -iinterpreter/src interpreter/app/Main.hs
+runghc -iinterpreter/src interpreter/src/Main.hs
 ```
 
 ### Build Formal (Futuro)
