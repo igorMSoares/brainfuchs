@@ -5,6 +5,7 @@ where
 
 import Brainfuck.Types (Instruction (..), ParseError (..), Program, IndexedCmd)
 
+-- [SUGGESTION] Helper function to centralize the Char -> Instruction mapping.
 charToInstruction :: Char -> Instruction
 charToInstruction c = case c of
   '>' -> IncrPtr
@@ -18,6 +19,8 @@ charToInstruction c = case c of
   _ -> error "unreachable: charToInstruction called with invalid character"
 
 
+-- Change 6: Logic extracted into a separate, pure function.
+-- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370797572
 buildIndexedCmds :: String -> [IndexedCmd]
 buildIndexedCmds s =
   let cleaned = filter (`elem` "><+-.,[]") s
@@ -32,6 +35,8 @@ parse s =
 
 parseTopLevel :: [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
 parseTopLevel [] = Right ([], [])
+-- Change 7: Unused 'stream@' pattern removed.
+-- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370799367
 parseTopLevel ((col, c) : cs) =
   case c of
     ']' -> Left (UnmatchedBracket ']' col)
