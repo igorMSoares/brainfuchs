@@ -19,22 +19,6 @@ parse s =
     Right (_, (col, c) : _) -> Left (UnmatchedBracket c col)
     Left err -> Left err
 
--- Change 4 & 5: Signature uses semantic types and parameter is renamed.
--- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370794533
--- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370795644
-parseSimple :: ParserFn -> Char -> [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
-parseSimple parseFn c cs = do
-  let instr = case c of
-        '>' -> IncrPtr
-        '<' -> DecrPtr
-        '+' -> IncrByte
-        '-' -> DecrByte
-        '.' -> Output
-        ',' -> Input
-        _   -> error "unreachable: parseSimple called with non-simple command"
-  (prog, remaining) <- parseFn cs
-  Right (instr : prog, remaining)
-
 parseTopLevel :: [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
 parseTopLevel [] = Right ([], [])
 -- Change 7: Unused 'stream@' pattern removed.
@@ -46,11 +30,20 @@ parseTopLevel ((col, c) : cs) =
       (loopProg, afterLoop) <- parseLoopBody cs
       (restProg, remaining) <- parseTopLevel afterLoop
       Right (Loop loopProg : restProg, remaining)
-    _ -> parseSimple parseTopLevel c cs
+    _ ->
+      let instr = case c of
+            '>' -> IncrPtr
+            '<' -> DecrPtr
+            '+' -> IncrByte
+            '-' -> DecrByte
+            '.' -> Output
+            ',' -> Input
+      in do
+        (prog, remaining) <- parseTopLevel cs
+        Right (instr : prog, remaining)
 
 parseLoopBody :: [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
 parseLoopBody [] = Left MismatchedBrackets
--- Change 7: Unused 'stream@' pattern removed.
 parseLoopBody ((col, c) : cs) =
   case c of
     ']' -> Right ([], cs)
@@ -58,4 +51,14 @@ parseLoopBody ((col, c) : cs) =
       (nestedProg, afterNested) <- parseLoopBody cs
       (restProg, remaining) <- parseLoopBody afterNested
       Right (Loop nestedProg : restProg, remaining)
-    _ -> parseSimple parseLoopBody c cs
+    _ ->
+      let instr = case c of
+            '>' -> IncrPtr
+            '<' -> DecrPtr
+            '+' -> IncrByte
+            '-' -> DecrByte
+            '.' -> Output
+            ',' -> Input
+      in do
+        (prog, remaining) <- parseLoopBody cs
+        Right (instr : prog, remaining)
