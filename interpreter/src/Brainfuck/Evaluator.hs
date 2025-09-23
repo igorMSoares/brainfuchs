@@ -23,6 +23,7 @@ defaultValue = 0
 -- Esta função é TOTAL. Ao tratar o caso da lista vazia, ela simula uma
 -- fita infinita, inserindo o valor padrão. Isso previne erros em tempo de
 -- execução e torna estados ilegais (sair da fita) irrepresentáveis.
+-- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370785267
 moveLeft :: BfState -> BfState
 moveLeft (Tape (l : ls) f rs) = Tape ls l (f : rs)
 moveLeft (Tape [] f rs) = Tape [] defaultValue (f : rs)
@@ -38,6 +39,8 @@ currentCell (Tape _ f _) = f
 -- | Auxiliar puro para aplicar uma função à célula em foco.
 -- O comportamento de 'wrap-around' para IncrByte/DecrByte é tratado
 -- automaticamente pelas funções (+) e (-) em `Word8`.
+-- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370785267
+-- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370792350
 modifyCell :: CellModFn -> BfState -> BfState
 modifyCell f (Tape ls focus rs) = Tape ls (f focus) rs
 
