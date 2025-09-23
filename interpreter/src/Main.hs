@@ -25,4 +25,3 @@ main = do
   putStrLn "--- A Brainfuck REPL ---"
   putStrLn $ "Enter " ++ quitCommand ++ " to quit."
   repl
-

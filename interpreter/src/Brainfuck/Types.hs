@@ -3,8 +3,17 @@ module Brainfuck.Types
     Program,
     Tape (..),
     ParseError (..),
+    -- Readability Refinements
+    BfState,
+    BfComputation,
+    CellModFn,
+    IndexedCmd,
+    ParserFn,
   )
 where
+
+import Control.Monad.State.Strict (StateT)
+import Data.Word (Word8)
 
 data Instruction
   = IncrPtr -- >
@@ -22,5 +31,12 @@ data Tape a = Tape [a] a [a] deriving (Show)
 
 data ParseError
   = MismatchedBrackets
-  | UnmatchedBracket Char Int 
+  | UnmatchedBracket Char Int
   deriving (Show, Eq)
+
+-- Mandated Semantic Type Aliases
+type BfState = Tape Word8
+type BfComputation = StateT BfState IO ()
+type CellModFn = Word8 -> Word8
+type IndexedCmd = (Int, Char)
+type ParserFn = [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
