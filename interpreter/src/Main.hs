@@ -21,6 +21,9 @@ repl = do
 
 main :: IO ()
 main = do
+  -- Exigido pela arquitetura. Definir stdout como `NoBuffering` garante
+  -- que a saída de comandos '.' seja impressa imediatamente, o que é
+  -- crítico para um REPL interativo.
   hSetBuffering stdout NoBuffering
   putStrLn "--- A Brainfuck REPL ---"
   putStrLn $ "Enter " ++ quitCommand ++ " to quit."
