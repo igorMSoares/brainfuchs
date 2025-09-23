@@ -41,14 +41,6 @@ data ParseError
   | UnmatchedBracket Char Int -- ^ O colchete específico e sua coluna (base 1).
   deriving (Show, Eq)
 
-{-|
-  Aliases de Tipos Semânticos.
-
-  Estes aliases são exigidos pela arquitetura para melhorar a clareza do
-  código e expressar a intenção do programador. Eles não alteram os tipos
-  subjacentes, mas servem como documentação valiosa.
--}
-
 -- | O estado da nossa máquina: uma fita de memória com palavras de 8 bits.
 type BfState = Tape Word8
 
@@ -58,7 +50,6 @@ type BfComputation = StateT BfState IO ()
 -- | Uma função pura que modifica o valor de uma célula de memória.
 type CellModFn = Word8 -> Word8
 
--- | Um caractere de comando pareado com sua coluna (base 1) para گزارش de erros.
 type IndexedCmd = (Int, Char)
 
 -- | A assinatura de tipo para nossas funções de parser de descida recursiva.
