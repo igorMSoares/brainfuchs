@@ -3,10 +3,21 @@ module Brainfuck.Parser
   )
 where
 
-import Brainfuck.Types (Instruction (..), ParseError (..), Program, IndexedCmd, ParserFn)
+import Brainfuck.Types (Instruction (..), ParseError (..), Program, IndexedCmd)
 
--- Change 6: Logic extracted into a separate, pure function.
--- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370797572
+charToInstruction :: Char -> Instruction
+charToInstruction c = case c of
+  '>' -> IncrPtr
+  '<' -> DecrPtr
+  '+' -> IncrByte
+  '-' -> DecrByte
+  '.' -> Output
+  ',' -> Input
+  -- This function is only called with pre-filtered characters,
+  -- so no other cases are needed.
+  _ -> error "unreachable: charToInstruction called with invalid character"
+
+
 buildIndexedCmds :: String -> [IndexedCmd]
 buildIndexedCmds s =
   let cleaned = filter (`elem` "><+-.,[]") s
@@ -21,8 +32,6 @@ parse s =
 
 parseTopLevel :: [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
 parseTopLevel [] = Right ([], [])
--- Change 7: Unused 'stream@' pattern removed.
--- https://github.com/igorMSoares/brainfuchs/pull/8#discussion_r2370799367
 parseTopLevel ((col, c) : cs) =
   case c of
     ']' -> Left (UnmatchedBracket ']' col)
@@ -30,17 +39,9 @@ parseTopLevel ((col, c) : cs) =
       (loopProg, afterLoop) <- parseLoopBody cs
       (restProg, remaining) <- parseTopLevel afterLoop
       Right (Loop loopProg : restProg, remaining)
-    _ ->
-      let instr = case c of
-            '>' -> IncrPtr
-            '<' -> DecrPtr
-            '+' -> IncrByte
-            '-' -> DecrByte
-            '.' -> Output
-            ',' -> Input
-      in do
+    _ -> do
         (prog, remaining) <- parseTopLevel cs
-        Right (instr : prog, remaining)
+        Right (charToInstruction c : prog, remaining)
 
 parseLoopBody :: [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
 parseLoopBody [] = Left MismatchedBrackets
@@ -51,14 +52,6 @@ parseLoopBody ((col, c) : cs) =
       (nestedProg, afterNested) <- parseLoopBody cs
       (restProg, remaining) <- parseLoopBody afterNested
       Right (Loop nestedProg : restProg, remaining)
-    _ ->
-      let instr = case c of
-            '>' -> IncrPtr
-            '<' -> DecrPtr
-            '+' -> IncrByte
-            '-' -> DecrByte
-            '.' -> Output
-            ',' -> Input
-      in do
+    _ -> do
         (prog, remaining) <- parseLoopBody cs
-        Right (instr : prog, remaining)
+        Right (charToInstruction c : prog, remaining)
