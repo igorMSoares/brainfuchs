@@ -1,0 +1,8 @@
+# Pasta de build principal do Cabal
+dist-newstyle/
+
+# Arquivos executáveis compilados (ex: .exe no Windows)
+*.exe
+
+# Arquivos de configuração local do Cabal
+cabal.project.local

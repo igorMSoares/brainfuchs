@@ -1,0 +1,32 @@
+cabal-version:      3.0
+name:               brainfuchs
+version:            0.1.0.0
+synopsis:           Um interpretador para a linguagem Brainfuck em Haskell
+license:            MIT
+license-file:       LICENSE
+author:             ADS 6 ciclo
+maintainer:         nathan.holtz0805@gmail.com
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+
+common common-settings
+    ghc-options:      -Wall
+    build-depends:    base >= 4.17 && < 5
+    default-language: Haskell2010
+
+library
+    import:           common-settings
+    exposed-modules:
+        Brainfuck.Evaluator,
+        Brainfuck.Parser,
+        Brainfuck.Types
+    build-depends:
+        mtl 
+    hs-source-dirs:   interpreter/src
+
+executable brainfuchs
+    import:           common-settings
+    main-is:          Main.hs
+    build-depends:
+        brainfuchs 
+    hs-source-dirs:   app
