@@ -104,7 +104,7 @@ run :: Program -> IO ()
 
 ---
 
-## Arquivo: `src/Main.hs`
+## Arquivo: `app/Main.hs`
 
 **Propósito**: Servir como ponto de entrada executável para a aplicação. Este módulo lida com toda interação direta do usuário e orquestra os outros componentes.
 
