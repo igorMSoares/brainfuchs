@@ -5,7 +5,7 @@ where
 
 import Brainfuck.Types (BfComputation, BfState, CellModFn, Instruction (..), Program, Tape (..))
 import Control.Exception (IOException, try)
-import Control.Monad (mapM_, when)
+import Control.Monad (when)
 import Control.Monad.State.Strict (StateT, evalStateT, get, gets, liftIO, modify)
 import Data.Char (chr, ord)
 import Data.Word (Word8)
@@ -81,3 +81,4 @@ run :: Program -> IO ()
 run prog =
   let initialTape = Tape [] defaultValue []
    in evalStateT (eval prog) initialTape
+
