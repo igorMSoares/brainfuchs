@@ -10,16 +10,22 @@ parse' :: String -> Either String (AST, String)
 parse' [] = Right ([], []) -- String Vazia = FIM
 
 -- começando com o loop pra ter menos dor de cabeça depois
-parse' (']' : resto) = Right ([], resto)
+parse' (']' : resto) = Right ([], ']' : resto)
 parse' ('[' : resto) =
   case parse' resto of
     Left err -> Left err -- retorno de erro
     Right (astLoop, restoFora) ->
       -- resto de fora do loop e o ast de dentro
-      case parse' restoFora of
-        Left err -> Left err
-        -- Finalmente, joga o 'astLoop' dentro do Loop do AST e continua com o parser'
-        Right (astFinal, strFinal) -> Right (Loop astLoop : astFinal, strFinal)
+      case restoFora of
+        [] -> Left "Erro: loop '[' nao foi fechado!"
+        (']' : restoDepoisDoLoop) ->
+          case parse' restoDepoisDoLoop of
+            Left err -> Left err
+            -- Finalmente, joga o 'astLoop' dentro do Loop do AST e continua com o parser'
+            Right (astFinal, strFinal) -> Right (Loop astLoop : astFinal, strFinal)
+            -- Para fins de teste, não deve acontecer!
+            _ -> Left "Erro de parser: estado inesperado apos um Loop!"
+--
 -- lidando com os outros caracteres
 parse' (c : resto) =
   case c of
