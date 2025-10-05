@@ -47,6 +47,7 @@ parse' (c : resto) =
       case parse' resto of
         Left err -> Left err
         Right (astResto, strFinal) -> Right (Input : astResto, strFinal)
+    _ -> parse' resto -- Ignora caracteres inválidos como se fossem comentários
 
 -- ! FUNÇÃO PARSE PÚBLICA ! --
 parse :: String -> Either String AST
