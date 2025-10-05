@@ -1,11 +1,12 @@
 cabal-version:      3.0
 name:               brainfuchs
-version:            0.1.0.0
-synopsis:           Um interpretador para a linguagem Brainfuck em Haskell
+version:            0.1.0
+synopsis:           Minimal Brainfuck interpreter in Haskell
+description:        Um interpretador minimalista para a linguagem Brainfuck, escrito em Haskell.
 license:            MIT
 license-file:       LICENSE
-author:             ADS 6 ciclo
-maintainer:         nathan.holtz0805@gmail.com
+author:             BrainfucHS project authors
+maintainer:         BrainfucHS project maintainers <https://github.com/igorMSoares/brainfuchs>
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md
 
@@ -21,12 +22,12 @@ library
         Brainfuck.Parser,
         Brainfuck.Types
     build-depends:
-        mtl 
+        mtl
     hs-source-dirs:   interpreter/src
 
 executable brainfuchs
     import:           common-settings
     main-is:          Main.hs
     build-depends:
-        brainfuchs 
+        brainfuchs
     hs-source-dirs:   app
