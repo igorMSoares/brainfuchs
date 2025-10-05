@@ -1,0 +1,254 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  validate-tag:
+    name: Validate Tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+      tag-version: ${{ steps.validate.outputs.tag-version }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Get version from cabal file
+      id: get-version
+      run: |
+        VERSION=$(grep -E "^version:" *.cabal | head -1 | awk '{print $2}')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Cabal version: $VERSION"
+
+    - name: Validate tag matches cabal version
+      id: validate
+      run: |
+        TAG_VERSION=${GITHUB_REF#refs/tags/v}
+        CABAL_VERSION="${{ steps.get-version.outputs.version }}"
+
+        echo "tag-version=$TAG_VERSION" >> $GITHUB_OUTPUT
+        echo "version=$CABAL_VERSION" >> $GITHUB_OUTPUT
+
+        if [ "$TAG_VERSION" != "$CABAL_VERSION" ]; then
+          echo "❌ Error: Tag version ($TAG_VERSION) does not match cabal version ($CABAL_VERSION)"
+          exit 1
+        fi
+
+        echo "✅ Tag version matches cabal version: $TAG_VERSION"
+
+  build-binaries:
+    name: Build Binary - ${{ matrix.os }}
+    needs: validate-tag
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact-name: linux-x86_64
+            binary-extension: ''
+            ghc: "9.6.7"
+            cabal: "3.12"
+          - os: macos-latest
+            artifact-name: macos-x86_64
+            binary-extension: ''
+            ghc: "9.6.7"
+            cabal: "3.12"
+          - os: windows-latest
+            artifact-name: windows-x86_64
+            binary-extension: '.exe'
+            ghc: "9.6.7"
+            cabal: "3.12"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Haskell
+      uses: haskell-actions/setup@v2
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: ${{ matrix.cabal }}
+
+    - name: Cache cabal store
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cabal/store
+          ~/.cabal/packages
+          dist-newstyle
+        key: ${{ runner.os }}-cabal-release-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-cabal-release-
+
+    - name: Update cabal
+      run: cabal update
+
+    - name: Build project
+      run: cabal build exe:brainfuchs
+
+    - name: Run tests
+      run: cabal test --test-show-details=direct
+
+    - name: Get binary name
+      id: get-binary
+      shell: bash
+      run: |
+        BINARY_PATH=$(cabal list-bin exe:brainfuchs)
+        echo "binary-path=$BINARY_PATH" >> $GITHUB_OUTPUT
+        BINARY_NAME=$(basename "$BINARY_PATH")
+        echo "binary-name=$BINARY_NAME" >> $GITHUB_OUTPUT
+
+    - name: Strip binary (Unix)
+      if: matrix.os != 'windows-latest'
+      run: strip ${{ steps.get-binary.outputs.binary-path }}
+
+    - name: Create release directory
+      run: mkdir -p release
+
+    - name: Copy binary to release directory
+      shell: bash
+      run: |
+        BIN_PATH="${{ steps.get-binary.outputs.binary-path }}"
+        # Substitui '\' por '/' para normalização de caminhos no Windows usando bash shell.
+        BIN_PATH=$(echo "$BIN_PATH" | sed 's#\\#/#g')
+
+        cp "$BIN_PATH" "release/brainfuchs-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+
+    - name: Create archive (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd release
+        tar -czf brainfuchs-v${{ needs.validate-tag.outputs.version }}-${{ matrix.artifact-name }}.tar.gz *
+
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd release
+        7z a brainfuchs-v${{ needs.validate-tag.outputs.version }}-${{ matrix.artifact-name }}.zip *
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact-name }}
+        path: release/*
+        if-no-files-found: ignore
+
+    - name: Generate documentation
+      if: matrix.os == 'ubuntu-latest'
+      run: cabal haddock --haddock-hyperlink-source --haddock-quickjump
+
+    - name: Prepare documentation for GitHub Pages
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        # Busca diretório da documentação gerada
+        DOC_DIR=$(find dist-newstyle -type d -path "*/doc/html/*" -name "brainfuchs" | head -1)
+
+        if [ -z "$DOC_DIR" ]; then
+          echo "Documentation directory not found"
+          exit 1
+        fi
+
+        mkdir -p gh-pages
+        cp -r "$DOC_DIR"/* gh-pages/
+
+        echo "Documentation prepared in gh-pages/"
+        ls -la gh-pages/
+
+    - name: Upload documentation artifact
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: gh-pages/
+
+  deploy-documentation:
+    name: Deploy Documentation to GitHub Pages
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4
+
+  create-release:
+    name: Create Stable Release
+    needs: [validate-tag, build-binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: binaries
+
+    - name: Display structure of downloaded files
+      run: ls -R binaries
+
+    - name: Extract changelog for version
+      id: changelog
+      run: |
+        VERSION="${{ needs.validate-tag.outputs.version }}"
+
+        # Verifica se existe um CHANGELOG.md
+        if [ ! -f CHANGELOG.md ]; then
+          # Fallback
+          echo "⚠️ CHANGELOG.md not found, creating generic release notes"
+          echo "## Release v${VERSION}" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+
+          echo "Release notes:"
+          cat RELEASE_NOTES.md
+          exit 0
+        fi
+
+        # Extrai a seção da versão atual
+        # Busca primeira ocorrência do padrão "## [1.2.3.0] - YYYY-MM-DD" ou "## 1.2.3.0 -- YYYY-MM-DD"
+        awk -v version="$VERSION" '
+          BEGIN { print_section=0 }
+          /^## / {
+            if (print_section) exit
+            if ($0 ~ version) {
+              print_section=1
+              print $0
+              next
+            }
+          }
+          print_section { print }
+        ' CHANGELOG.md > RELEASE_NOTES.md
+
+        # Verifica se encontrou alguma seção para a versão atual
+        if [ ! -s RELEASE_NOTES.md ]; then
+          # Fallback
+          echo "⚠️ No changelog entry found for version ${VERSION}"
+          echo "## Release v${VERSION}" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "Veja [CHANGELOG.md](CHANGELOG.md) para mais detalhes" >> RELEASE_NOTES.md
+        fi
+
+        echo "Release notes:"
+        cat RELEASE_NOTES.md
+
+    - name: Create Stable Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ needs.validate-tag.outputs.version }}
+        name: Release v${{ needs.validate-tag.outputs.version }}
+        body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: false
+        files: |
+          binaries/linux-x86_64/*
+          binaries/macos-x86_64/*
+          binaries/windows-x86_64/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

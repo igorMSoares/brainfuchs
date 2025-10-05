@@ -55,7 +55,7 @@ parseTopLevel ((col, c) : cs) =
 -- entrada terminar antes de um ']', ocorre um erro de colchetes.
 parseLoopBody :: [IndexedCmd] -> Either ParseError (Program, [IndexedCmd])
 parseLoopBody [] = Left MismatchedBrackets
-parseLoopBody ((col, c) : cs) =
+parseLoopBody ((_, c) : cs) =
   case c of
     ']' -> Right ([], cs)
     '[' -> do

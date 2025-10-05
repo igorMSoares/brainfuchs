@@ -1,0 +1,145 @@
+name: Pre-release
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-binaries:
+    name: Build Binary - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact-name: linux-x86_64
+            binary-extension: ''
+            ghc: "9.6.7"
+            cabal: "3.12"
+          - os: macos-latest
+            artifact-name: macos-x86_64
+            binary-extension: ''
+            ghc: "9.6.7"
+            cabal: "3.12"
+          - os: windows-latest
+            artifact-name: windows-x86_64
+            binary-extension: '.exe'
+            ghc: "9.6.7"
+            cabal: "3.12"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Haskell
+      uses: haskell-actions/setup@v2
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: ${{ matrix.cabal }}
+
+    - name: Cache cabal store
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cabal/store
+          ~/.cabal/packages
+          dist-newstyle
+        key: ${{ runner.os }}-cabal-release-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-cabal-release-
+
+    - name: Update cabal
+      run: cabal update
+
+    - name: Build project
+      run: cabal build exe:brainfuchs
+
+    - name: Run tests
+      run: cabal test --test-show-details=direct
+
+    - name: Get binary name
+      id: get-binary
+      shell: bash
+      run: |
+        BINARY_PATH=$(cabal list-bin exe:brainfuchs)
+        echo "binary-path=$BINARY_PATH" >> $GITHUB_OUTPUT
+        BINARY_NAME=$(basename "$BINARY_PATH")
+        echo "binary-name=$BINARY_NAME" >> $GITHUB_OUTPUT
+
+    - name: Strip binary (Unix)
+      if: matrix.os != 'windows-latest'
+      run: strip ${{ steps.get-binary.outputs.binary-path }}
+
+    - name: Create release directory
+      run: mkdir -p release
+
+    - name: Copy binary to release directory
+      shell: bash
+      run: |
+        BIN_PATH="${{ steps.get-binary.outputs.binary-path }}"
+        # Substitui '\' por '/' para normalização de caminhos no Windows usando bash shell.
+        BIN_PATH=$(echo "$BIN_PATH" | sed 's#\\#/#g')
+
+        cp "$BIN_PATH" "release/brainfuchs-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: binary-${{ matrix.artifact-name }}
+        path: release/*
+
+  create-pre-release:
+    name: Create Pre-release
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Get version from cabal file
+      id: get-version
+      run: |
+        VERSION=$(grep -E "^version:" *.cabal | head -1 | awk '{print $2}')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Current version: $VERSION"
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: binaries
+
+    - name: Display structure of downloaded files
+      run: ls -R binaries
+
+    - name: Generate pre-release tag
+      id: tag
+      run: |
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        TAG="v${{ steps.get-version.outputs.version }}-beta-${SHORT_SHA}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+    - name: Create Pre-release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        name: Pre-release ${{ steps.tag.outputs.tag }}
+        body: |
+          Pré-lançamento
+
+          **Versão:** ${{ steps.get-version.outputs.version }}
+          **Commit:** ${{ github.sha }}
+          **Branch:** develop
+
+          ⚠️ Versão beta para testes.
+        draft: false
+        prerelease: true
+        files: |
+          binaries/binary-linux-x86_64/*
+          binaries/binary-macos-x86_64/*
+          binaries/binary-windows-x86_64/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
