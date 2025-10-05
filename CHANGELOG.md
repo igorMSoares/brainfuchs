@@ -8,6 +8,17 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [Unreleased]
 
 ### Added
+- (Placeholder)
+
+### Changed
+- (Placeholder)
+
+### Fixed
+- (Placeholder)
+
+## [0.1.0] - 2025-10-05
+
+### Added
 - Initial implementation of the brainfuck interpreter.
 - Library modules:
   - `Brainfuck.Parser` – parse Brainfuck code into commands.
