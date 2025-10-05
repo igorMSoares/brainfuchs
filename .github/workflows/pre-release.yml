@@ -122,10 +122,11 @@ jobs:
         echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT
 
     - name: Create Pre-release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.tag.outputs.tag }}
         name: Pre-release ${{ steps.tag.outputs.tag }}
+        target_commitish: develop
         body: |
           Pré-lançamento
 
