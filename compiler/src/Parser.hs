@@ -23,8 +23,6 @@ parse' ('[' : resto) =
             Left err -> Left err
             -- Finalmente, joga o 'astLoop' dentro do Loop do AST e continua com o parser'
             Right (astFinal, strFinal) -> Right (Loop astLoop : astFinal, strFinal)
-            -- Para fins de teste, não deve acontecer!
-            _ -> Left "Erro de parser: estado inesperado apos um Loop!"
 --
 -- lidando com os outros caracteres
 parse' (c : resto) =
