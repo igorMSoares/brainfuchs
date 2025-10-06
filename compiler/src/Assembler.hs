@@ -21,6 +21,6 @@ createExecutable assemblyCode outputFilename = do
   putStrLn $ "Montando com NASM " ++ asmFile ++ " -> " ++ objFile ++ "..."
   callCommand ("nasm -felf64 " ++ asmFile ++ " -o " ++ objFile) -- felf64 está indicando que é para o formato x86_64 do Linux
   putStrLn $ "Linkando com GCC: " ++ objFile ++ " -> " ++ outputFilename ++ "..."
-  callCommand ("gcc " ++ objFile ++ " -o " ++ outputFilename)
+  callCommand ("gcc -no-pie " ++ objFile ++ " -o " ++ outputFilename)
 
   putStrLn $ "Executavel '" ++ outputFilename ++ "' criado com sucesso!"
