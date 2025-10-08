@@ -8,7 +8,13 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [Unreleased]
 
 ### Added
-- (Placeholder)
+- Implemented Brainfuck compiler targeting Linux x86-64
+- Library modules:
+  - `AST` - Defines the AST for Brainfuck
+  - `Parser` - Parses Brainfuck code into an AST
+  - `CodeGen` - Translates AST into x86-64 assembly code
+  - `Assembler` - Assembles and links assembly code into executable binary
+- Executable `bfhsc` with entry point in `app/Compiler.hs`
 
 ### Changed
 - (Placeholder)
@@ -21,7 +27,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ### Added
 - Initial implementation of the brainfuck interpreter.
 - Library modules:
-  - `Brainfuck.Parser` – parse Brainfuck code into commands.
-  - `Brainfuck.Evaluator` – run Brainfuck programs.
-  - `Brainfuck.Types` – core types (e.g. Tape, Instructions).
+  - `Brainfuck.Parser` – Parses Brainfuck code into an AST.
+  - `Brainfuck.Evaluator` – Runs Brainfuck programs.
+  - `Brainfuck.Types` – Defines the core types (e.g. Tape, Instructions).
 - Executable `brainfuchs` with CLI entry point in `app/Main.hs`.

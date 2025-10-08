@@ -37,8 +37,12 @@ jobs:
     - name: Update cabal package list
       run: cabal update
 
-    - name: Build project
+    - name: Build interpreter
       run: cabal build exe:brainfuchs
+
+    - name: Build compiler
+      if: matrix.os == 'ubuntu-latest'
+      run: cabal build exe:bfhsc
 
     - name: Run tests
       run: cabal test --test-show-details=direct
