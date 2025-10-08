@@ -85,13 +85,44 @@ jobs:
     - name: Update cabal
       run: cabal update
 
-    - name: Build project
+    - name: Build interpreter
       run: cabal build exe:brainfuchs
+
+    - name: Build compiler
+      if: matrix.os == 'ubuntu-latest'
+      run: cabal build exe:bfhsc
 
     - name: Run tests
       run: cabal test --test-show-details=direct
 
-    - name: Get binary name
+    - name: Create release directory
+      run: mkdir -p release
+
+    - name: Get compiler binary name
+      if: matrix.os == 'ubuntu-latest'
+      id: get-compiler-binary
+      shell: bash
+      run: |
+        BINARY_PATH=$(cabal list-bin exe:bfhsc)
+        echo "binary-path=$BINARY_PATH" >> $GITHUB_OUTPUT
+        BINARY_NAME=$(basename "$BINARY_PATH")
+        echo "binary-name=$BINARY_NAME" >> $GITHUB_OUTPUT
+
+    - name: Strip compiler binary (Unix)
+      if: matrix.os == 'ubuntu-latest'
+      run: strip ${{ steps.get-compiler-binary.outputs.binary-path }}
+
+    - name: Copy compiler binary to release directory
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
+      run: |
+        BIN_PATH="${{ steps.get-compiler-binary.outputs.binary-path }}"
+        # Substitui '\' por '/' para normalização de caminhos no Windows usando bash shell.
+        BIN_PATH=$(echo "$BIN_PATH" | sed 's#\\#/#g')
+
+        cp "$BIN_PATH" "release/bfhsc-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+
+    - name: Get interpreter binary name
       id: get-binary
       shell: bash
       run: |
@@ -100,14 +131,11 @@ jobs:
         BINARY_NAME=$(basename "$BINARY_PATH")
         echo "binary-name=$BINARY_NAME" >> $GITHUB_OUTPUT
 
-    - name: Strip binary (Unix)
+    - name: Strip interpreter binary (Unix)
       if: matrix.os != 'windows-latest'
       run: strip ${{ steps.get-binary.outputs.binary-path }}
 
-    - name: Create release directory
-      run: mkdir -p release
-
-    - name: Copy binary to release directory
+    - name: Copy interpreter binary to release directory
       shell: bash
       run: |
         BIN_PATH="${{ steps.get-binary.outputs.binary-path }}"
