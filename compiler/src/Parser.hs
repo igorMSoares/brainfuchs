@@ -23,6 +23,7 @@ parse' ('[' : resto) =
             Left err -> Left err
             -- Finalmente, joga o 'astLoop' dentro do Loop do AST e continua com o parser'
             Right (astFinal, strFinal) -> Right (Loop astLoop : astFinal, strFinal)
+        _ -> Left "Erro de sintaxe: ']' esperado para fechar o loop."
 --
 -- lidando com os outros caracteres
 parse' (c : resto) =

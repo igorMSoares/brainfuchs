@@ -3,7 +3,9 @@ module Assembler (
 ) where
 
 -- Roda comandos de terminal
-import System.IO (writeFile) -- Escreve em arquivos (O nome ja diz)
+
+import System.Directory.OsPath (createDirectoryIfMissing)
+import System.OsPath (encodeFS)
 import System.Process (callCommand)
 
 -- Função principal
@@ -11,8 +13,13 @@ import System.Process (callCommand)
 -- IO () não retorna valor
 createExecutable :: String -> FilePath -> IO ()
 createExecutable assemblyCode outputFilename = do
-  let asmFile = "temp.s"
-  let objFile = "temp.o"
+  let buildDir = "build/"
+  let asmFile = buildDir ++ "temp.s"
+  let objFile = buildDir ++ "temp.o"
+
+  -- Cria diretório para os artefatos de build, caso não exista
+  buildPath <- encodeFS buildDir
+  _ <- createDirectoryIfMissing True buildPath
 
   -- Aqui o 'do' se mostra útil, deixando o código mais limpo em comandos sequenciais
   putStrLn $ "Escrevendo codigo Assembly para " ++ asmFile ++ "..."

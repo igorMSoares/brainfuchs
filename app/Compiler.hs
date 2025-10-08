@@ -1,6 +1,5 @@
 module Main where
 
-import AST
 import Assembler
 import CodeGen
 import Parser

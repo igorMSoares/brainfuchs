@@ -1,6 +1,9 @@
 # Pasta de build principal do Cabal
 dist-newstyle/
 
+# Arquivos temporários do compilador
+build/
+
 # Arquivos executáveis compilados (ex: .exe no Windows)
 *.exe
 

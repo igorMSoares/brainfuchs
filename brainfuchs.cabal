@@ -33,7 +33,9 @@ library brainfuchs-compiler
         CodeGen,
         Assembler
     build-depends:
-        process
+        process,
+        directory,
+        filepath
     hs-source-dirs:   compiler/src
 
 executable brainfuchs
