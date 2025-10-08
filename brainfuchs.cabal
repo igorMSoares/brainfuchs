@@ -51,3 +51,20 @@ executable bfhsc
     build-depends:
       brainfuchs-compiler
     hs-source-dirs:   app
+test-suite brainfuchs-tests
+  import:           common-settings
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   tests
+  main-is:          Spec.hs
+  other-modules:
+      EvaluatorProps
+  build-depends:
+      base,
+      QuickCheck >= 2.14,
+      hspec >= 2.11,
+      mtl,
+      directory,
+      bytestring,
+      brainfuchs-interpreter,
+      brainfuchs-compiler
+
