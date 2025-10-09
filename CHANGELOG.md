@@ -8,6 +8,17 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [Unreleased]
 
 ### Added
+- (Placeholder)
+
+### Changed
+- (Placeholder)
+
+### Fixed
+- (Placeholder)
+
+## [0.1.1] - 2025-10-09
+
+### Added
 - Implemented Brainfuck compiler targeting Linux x86-64
 - Library modules:
   - `AST` - Defines the AST for Brainfuck
@@ -15,12 +26,6 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
   - `CodeGen` - Translates AST into x86-64 assembly code
   - `Assembler` - Assembles and links assembly code into executable binary
 - Executable `bfhsc` with entry point in `app/Compiler.hs`
-
-### Changed
-- (Placeholder)
-
-### Fixed
-- (Placeholder)
 
 ## [0.1.0] - 2025-10-05
 
