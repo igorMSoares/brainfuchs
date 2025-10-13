@@ -1,4 +1,4 @@
-# Exemplos de Programas em Brainfuck
+# Exemplos de Programas em Brainfuck - 08/10/25
 
 Este diretório contém programas de exemplo para testar o interpretador **BrainfucHS**.  
 Cada programa demonstra funcionalidades básicas da linguagem Brainfuck e valida o funcionamento do interpretador.
@@ -98,3 +98,69 @@ Repete tudo que o usuário digitar, até o fim da entrada.
 **Saída:**
 
 ![resultado repetidor](./prints/resultado-repetidor.png)
+
+### 5. `antesuc.bf`
+Imprime o caractere **anterior**, **o próprio caractere** e o **sucessor**.
+
+- **Propósito**: demonstrar manipulação de células e operações aritméticas simples.  
+- **Código comentado**:
+```brainfuck
+,       // Lê um caractere digitado pelo usuário e armazena na célula atual
+-       // Decrementa a célula (ASCII do caractere - 1), para imprimir o anterior
+.       // Imprime o caractere anterior
++       // Incrementa a célula para voltar ao caractere original
+.       // Imprime o próprio caractere
++       // Incrementa a célula novamente (ASCII + 1) para imprimir o sucessor
+.       // Imprime o caractere sucessor
+```
+
+**Saída:**
+
+![resultado antesuc](./prints/resultado-antesuc.png)
+
+### 6. `moveponteiro.bf`
+Move o ponteiro para antes de qualquer célula.
+
+- **Propósito**: demonstrar manipulação de ponteiro.  
+- **Código comentado**:
+```brainfuck
+<   // Move o ponteiro para a célula à esquerda
+.   // Imprime o valor da célula atual (pode ser 0 ou ASCII definido previamente)
+```
+
+**Saída:**
+
+![resultado moveponteiro](./prints/resultado-moveponteiro.png)
+
+### 7. `tab.bf`
+Imprime um TAB.
+
+- **Propósito**: demonstrar manipulação de valores e impressão de caracteres especiais. 
+- **Código comentado**:
+```brainfuck
++++          // Inicializa célula 0 com valor 3 (contador para o loop)
+[            // Início do loop
+  >+++       // Incrementa célula 1 em 3
+  <-         // Volta para célula 0 e decrementa
+]            // Fim do loop (repete 3 vezes)
+>.           // Move para célula 1 e imprime o valor correspondente a um TAB (ASCII 9)        
+```
+
+**Saída:**
+
+![resultado tab](./prints/resultado-tab.png)
+
+### 8. `zero.bf`
+Imprime o número zero.
+
+- **Propósito**: demonstrar inicialização de célula e impressão de um caractere específico. 
+- **Código comentado**:
+```brainfuck
+++++++++++++++++++++++++++++++++++++++++++++++++.  
+// Incrementa célula 0 48 vezes (ASCII de '0') e imprime                
+```
+
+**Saída:**
+
+![resultado zero](./prints/resultado-zero.png)
+
