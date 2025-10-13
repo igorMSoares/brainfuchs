@@ -57,14 +57,18 @@ test-suite brainfuchs-tests
   hs-source-dirs:   tests
   main-is:          Spec.hs
   other-modules:
+      ParserProps
+      GenBalanced
       EvaluatorProps
   build-depends:
       base,
       QuickCheck >= 2.14,
       hspec >= 2.11,
       mtl,
-      directory,
       bytestring,
+      directory,  
+      filepath,              
+      process,                
+      temporary,        
       brainfuchs-interpreter,
       brainfuchs-compiler
-
