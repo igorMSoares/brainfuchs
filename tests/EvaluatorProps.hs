@@ -10,7 +10,7 @@ import Brainfuck.Types (Instruction(..), Program)
 import Brainfuck.Parser (parse)
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
-import Test.QuickCheck (forAll, arbitrary, choose, ioProperty, counterexample)
+import Test.QuickCheck (forAll, arbitrary, choose, ioProperty,(===))
 import Data.Either (fromRight)
 import Data.Char (chr)
 import Data.Word (Word8)
@@ -78,6 +78,8 @@ runAndCapture mIn io = do
   hDuplicateTo origIn stdin
   hDuplicateTo origOut stdout
 
+
+
 -- Restaura stdin/stdout
   hClose outH
   case mInHandles of
@@ -93,6 +95,8 @@ runAndCapture mIn io = do
     Nothing        -> pure ()
     Just (p, _inH) -> removeFile p
 
+  hClose origIn
+  hClose origOut
 -- Restaura handles originais
   pure outStr
 
@@ -112,7 +116,7 @@ spec = describe "Evaluator (QuickCheck)" $ do
         let prog = [Input, Output] :: Program
             ch   = chr (fromIntegral w)
         out <- runBF prog [ch]
-        pure (out == [ch])
+        pure (out === [ch])
 
     prop "cancelamento simétrico (+^n ; -^n) imprime 0" $
       forAll (choose (0,200)) $ \n -> ioProperty $ do
@@ -120,9 +124,8 @@ spec = describe "Evaluator (QuickCheck)" $ do
         out <- runBF prog ""
         let got = map fromEnum out
             expect = [n, 0]
-        pure $
-          counterexample ("n=" <> show n <> " got=" <> show got <> " expect=" <> show expect)
-                         (got == expect)
+        pure $ got === expect
+         
 
     it "movimento de ponteiro isola células" $ do
       let prog = [IncrPtr] ++ rep 17 IncrByte ++ [DecrPtr, Output] :: Program
@@ -135,9 +138,7 @@ spec = describe "Evaluator (QuickCheck)" $ do
         out <- runBF prog ""
         let got = map fromEnum out
             expect = [n, 0]
-        pure $
-          counterexample ("n=" <> show n <> " got=" <> show got <> " expect=" <> show expect)
-                         (got == expect)
+        pure $ got === expect
 
     it "loop é ignorado quando célula é 0" $ do
       let body = [IncrByte]
@@ -175,3 +176,12 @@ spec = describe "Evaluator (QuickCheck)" $ do
       let prog = parseBF (replicate 4 '+' ++ "[-].")
       out <- runBF prog ""
       map fromEnum out `shouldBe` [0]
+
+    it "avalia corretamente loops aninhados" $ do
+      let prog = parseBF "++[>++[>++[>++[>++<-]<-]<-]<-]>>>>."
+          -- célula0 = 2 → o laço externo executa 2 vezes
+          -- cada iteração do laço externo dobra os incrementos internos
+          -- célula de saída final = 2 * 2 * 2 * 2 * 2 = 32
+          expected = [chr 32]
+      out <- runBF prog ""
+      out `shouldBe` expected
