@@ -57,10 +57,11 @@ test-suite brainfuchs-tests
   hs-source-dirs:   tests
   main-is:          Spec.hs
   other-modules:
+      AssemblerSpec
       AstProps
-      ParserProps
-      GenBalanced
       EvaluatorProps
+      GenBalanced
+      ParserProps
   build-depends:
       base,
       QuickCheck >= 2.14,
