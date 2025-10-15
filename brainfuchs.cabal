@@ -60,6 +60,7 @@ test-suite brainfuchs-tests
       AssemblerSpec
       AstProps
       EvaluatorProps
+      CodeGenSpec
       GenBalanced
       ParserProps
   build-depends:
@@ -69,8 +70,9 @@ test-suite brainfuchs-tests
       mtl,
       bytestring,
       directory,  
-      filepath,              
       process,                
       temporary,        
+      process >= 1.6,
+      filepath >= 1.4,
       brainfuchs-interpreter,
       brainfuchs-compiler

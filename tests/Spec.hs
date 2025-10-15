@@ -4,6 +4,7 @@ import qualified AssemblerSpec
 import qualified AstProps
 import qualified EvaluatorProps
 import qualified ParserProps
+import qualified CodeGenSpec
 
 main :: IO ()
 main = hspec $ do
@@ -12,4 +13,5 @@ main = hspec $ do
       describe "AST (QuickCheck)" AstProps.spec
       describe "Evaluator (QuickCheck)" EvaluatorProps.spec
       describe "Parser (QuickCheck)" ParserProps.spec
+      describe "CodeGen (QuickCheck)" CodeGenSpec.spec
     )
