@@ -8,7 +8,17 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [Unreleased]
 
 ### Added
-- (Placeholder)
+- Comprehensive test suite with property-based and integration testing:
+  - **`ParserProps`** - Syntactic validation: accepts valid syntax, rejects malformed brackets, ignores invalid characters
+  - **`AstProps`** - Structural validation: verifies nesting depth, instruction count preservation, and empty loop detection
+  - **`EvaluatorProps`** - Semantic validation: tests I/O operations, loop execution, pointer movement, wrap-around behavior, and tape infiniteness
+  - **`CodeGenSpec`** - Assembly generation: validates required sections, labels, and end-to-end compilation (Linux only)
+  - **`AssemblerSpec`** - Integration tests: verifies NASM/GCC toolchain and binary generation with correct exit codes (Linux only)
+  - **`GenBalanced`** - Helper generator for balanced bracket strings
+- Test infrastructure:
+  - QuickCheck properties configured with 2000 test cases per property for enhanced robustness
+  - Platform-aware conditional testing (Linux-specific integration tests gracefully pending on other platforms)
+  - Regression test suite with documented edge cases
 
 ### Changed
 - (Placeholder)
