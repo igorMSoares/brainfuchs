@@ -170,16 +170,52 @@ jobs:
     - name: Prepare documentation for GitHub Pages
       if: matrix.os == 'ubuntu-latest'
       run: |
-        # Busca diretório da documentação gerada
-        DOC_DIR=$(find dist-newstyle -type d -path "*/doc/html/*" -name "brainfuchs" | head -1)
+        mkdir -p gh-pages
 
-        if [ -z "$DOC_DIR" ]; then
-          echo "Documentation directory not found"
-          exit 1
+        INTERPRETER_DOC=$(find dist-newstyle -type d -path "*/brainfuchs-interpreter/doc/html/*" -name "brainfuchs" | head -1)
+        if [ -n "$INTERPRETER_DOC" ]; then
+          echo "Found brainfuchs-interpreter docs at: $INTERPRETER_DOC"
+          mkdir -p gh-pages/brainfuchs
+          cp -r "$INTERPRETER_DOC"/* gh-pages/brainfuchs/
+        else
+          echo "Warning: brainfuchs-interpreter documentation not found"
         fi
 
-        mkdir -p gh-pages
-        cp -r "$DOC_DIR"/* gh-pages/
+        COMPILER_DOC=$(find dist-newstyle -type d -path "*/brainfuchs-compiler/doc/html/*" -name "brainfuchs" | head -1)
+        if [ -n "$COMPILER_DOC" ]; then
+          echo "Found brainfuchs-compiler docs at: $COMPILER_DOC"
+          mkdir -p gh-pages/bfhsc
+          cp -r "$COMPILER_DOC"/* gh-pages/bfhsc/
+        else
+          echo "Warning: brainfuchs-compiler documentation not found"
+        fi
+
+        # Cria index.html para navegar entre as duas documentações
+        cat > gh-pages/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>BrainfucHS Project Documentation</title>
+          <style>
+            body { font-family: sans-serif; max-width: 800px; margin: 50px auto; }
+            h1 { color: #333; }
+            .docs-link { display: block; padding: 15px; margin: 10px 0; 
+                         background: #f5f5f5; border-radius: 5px; 
+                         text-decoration: none; color: #0366d6; }
+            .docs-link:hover { background: #e8e8e8; }
+          </style>
+        </head>
+        <body>
+          <h1>BrainfucHS Project Documentation</h1>
+          <a class="docs-link" href="brainfuchs/index.html">
+            <strong>brainfuchs</strong> - Brainfuck Interpreter
+          </a>
+          <a class="docs-link" href="bfhsc/index.html">
+            <strong>bfhsc</strong> - Brainfuck Compiler (Linux x86-64)
+          </a>
+        </body>
+        </html>
+        EOF
 
         echo "Documentation prepared in gh-pages/"
         ls -la gh-pages/
