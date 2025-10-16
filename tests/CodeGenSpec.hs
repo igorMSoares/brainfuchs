@@ -17,7 +17,7 @@ import System.Directory (createDirectoryIfMissing, doesFileExist, removeFile)
 import System.FilePath ((</>))
 import Control.Exception (try, IOException)
 
-import AST                 
+import AST
 import CodeGen (generateAssembly)
 import Assembler (createExecutable)
 
@@ -25,7 +25,7 @@ import Assembler (createExecutable)
 
 genCmd :: Int -> Gen Cmd
 genCmd n = frequency $
-  [ (6, elements [Incr, Decr, Next, Prev, Print, Input]) ] ++
+  (6, elements [Incr, Decr, Next, Prev, Print, Input]) :
   [ (1, Loop <$> resize (n `div` 2) genAST) | n > 0 ]
 
 genAST :: Gen AST

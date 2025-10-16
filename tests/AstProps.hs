@@ -3,20 +3,20 @@ module AstProps (spec) where
 import Test.Hspec
 import Test.QuickCheck
 import Brainfuck.Parser (parse)
-import Brainfuck.Types (Program(..), Instruction(..))
-import Data.Either (isRight, isLeft)
+import Brainfuck.Types (Program, Instruction(..))
+import Data.Either (isRight)
 
 -- profundidade máxima de Loop na AST
 maxDepthAst :: Program -> Int
 maxDepthAst = foldr step 0
   where
     step (Loop p) acc = max (1 + maxDepthAst p) acc
-    step _         acc = acc
+    step _        acc = acc
 
 maxDepthText :: String -> Int
 maxDepthText = go 0 0
   where
-    go mx cur [] = mx
+    go mx _ [] = mx
     go mx cur (c:cs) = case c of
       '[' -> go (max mx (cur+1)) (cur+1) cs
       ']' -> go mx (cur-1) cs
@@ -27,7 +27,7 @@ countInstrsAst :: Program -> Int
 countInstrsAst = foldr step 0
   where
     step (Loop p) acc = countInstrsAst p + acc
-    step _         acc = acc + 1
+    step _        acc = acc + 1
 
 -- conta o total de instruções simples no texto
 countInstrsText :: String -> Int

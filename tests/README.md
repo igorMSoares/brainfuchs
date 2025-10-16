@@ -3,6 +3,8 @@
 Esse diretório contém os módulos de testes automatizados do projeto, com o objetivo de garantir o funcionamento correto de todas as camadas do interpretador.
 Este documento especifica o propósito e as propriedades testadas para cada módulo de teste (`QuickCheck` e `Hspec`) que compõe o sistema de validação do interpretador Brainfuck.
 
+Para rodar os testes, execute `cabal test --test-options="--no-color"`.
+
 ---
 
 ## 1. Visão Geral

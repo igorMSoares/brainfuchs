@@ -51,6 +51,7 @@ executable bfhsc
     build-depends:
       brainfuchs-compiler
     hs-source-dirs:   app
+
 test-suite brainfuchs-tests
   import:           common-settings
   type:             exitcode-stdio-1.0
@@ -69,9 +70,8 @@ test-suite brainfuchs-tests
       hspec >= 2.11,
       mtl,
       bytestring,
-      directory,  
-      process,                
-      temporary,        
+      directory,
+      temporary,
       process >= 1.6,
       filepath >= 1.4,
       brainfuchs-interpreter,

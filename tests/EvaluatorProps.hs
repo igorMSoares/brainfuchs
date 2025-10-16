@@ -25,7 +25,7 @@ import System.IO
 
 -- pequeno atalho para montar programas
 rep :: Int -> Instruction -> [Instruction]
-rep n i = replicate n i
+rep = replicate
 
 -- parser conveniente para testes (falha explícita)
 parseBF :: String -> Program
@@ -125,7 +125,6 @@ spec = describe "Evaluator (QuickCheck)" $ do
         let got = map fromEnum out
             expect = [n, 0]
         pure $ got === expect
-         
 
     it "movimento de ponteiro isola células" $ do
       let prog = [IncrPtr] ++ rep 17 IncrByte ++ [DecrPtr, Output] :: Program
