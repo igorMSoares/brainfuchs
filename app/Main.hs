@@ -1,18 +1,20 @@
 module Main (main) where
 
-import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
-import System.Environment (getArgs)
+import Brainfuck.Evaluator (run)
+import Brainfuck.Parser (parse)
+import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
--- REPL inicial (ainda sem integração com parser ou executor)
 repl :: IO ()
 repl = do
   putStr "> "
   line <- getLine
-  putStrLn $ "Entrada: " ++ line
+  case parse line of
+    Left err -> print err
+    Right prog -> run prog
   repl
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
-  putStrLn "--- Brainfuck REPL (versão inicial) ---"
+  putStrLn "--- Brainfuck REPL ---"
   repl
