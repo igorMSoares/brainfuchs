@@ -19,9 +19,19 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
   - QuickCheck properties configured with 2000 test cases per property for enhanced robustness
   - Platform-aware conditional testing (Linux-specific integration tests gracefully pending on other platforms)
   - Regression test suite with documented edge cases
+- Enhanced REPL functionality:
+  - **File loading system** - `:load` (`:l`) command to load and execute Brainfuck files
+  - **File reloading** - `:reload` (`:r`) command to re-execute the last loaded file
+  - **Help menu** - `:help` (`:h`) command displaying all available commands and their aliases
+  - **Command-line file execution** - Support for running Brainfuck files via command-line arguments
+  - **Persistent file state** - REPL remembers the last loaded file across reload commands
+  - **Error handling** - Graceful handling of missing files with user-friendly error messages
+- Comprehensive inline documentation with Haddock comments for all major functions
 
 ### Changed
-- (Placeholder)
+- Improved REPL welcome message with formatted help menu
+- Enhanced command parsing to support both full commands and abbreviated aliases
+- Refactored REPL to track loaded file state for reload functionality
 
 ### Fixed
 - (Placeholder)
