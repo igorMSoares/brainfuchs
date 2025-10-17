@@ -20,6 +20,35 @@ runBf bfCode =
     Left err -> print err
     Right prog -> run prog
 
+-- | Carrega, analisa e executa um arquivo brainfuck.
+--
+-- Inclui tratamento de erro para o caso de o arquivo não ser encontrado.
+-- Retorna um Bool indicando o sucesso da operação.
+loadFile :: FilePath -> IO Bool
+loadFile filepath = do
+  putStrLn $ "\n> Carregando arquivo: " ++ filepath
+  catchIOError
+    ( do
+        source <- readFile filepath
+        runBf source
+        return True
+    )
+    ( \_ -> do
+        putStrLn "> Erro ao ler o arquivo. Verifique o caminho e tente novamente."
+        return False
+    )
+
+reloadFile :: Maybe FilePath -> IO ()
+reloadFile lastFile =
+  case lastFile of
+    Nothing -> do
+      putStrLn "\n> Nenhum arquivo foi carregado anteriormente. Use :load <arquivo> primeiro."
+      repl lastFile
+    Just fp -> do
+      _ <- loadFile fp -- Não precisamos checar o sucesso, o estado não muda
+      putStrLn ""
+      repl lastFile
+
 -- | Exibe o menu de ajuda do REPL (Read-Eval-Print Loop)
 --
 -- lista todos os comandos disponíveis,
@@ -32,9 +61,10 @@ showHelp = do
   putStrLn "----------------------"
   putStrLn ""
   putStrLn "Comandos disponíveis:"
-  putStrLn ":load (:l) ./caminho/arquivo.bf\t\tcarrega e executa um arquivo brainfuck."
-  putStrLn ":quit (:q)\t\t\t\tencerra o REPL"
-  putStrLn ":help (:h)\t\t\t\texibe os comandos disponíveis"
+  putStrLn ":load\t(:l) ./caminho/arquivo.bf\tcarrega e executa um arquivo brainfuck"
+  putStrLn ":reload\t(:r)\t\t\t\texecuta novamente arquivo previamente carregado"
+  putStrLn ":quit\t(:q)\t\t\t\tencerra o REPL"
+  putStrLn ":help\t(:h)\t\t\t\texibe os comandos disponíveis"
   putStrLn ""
 
 -- | Loop interativo do interpretador (REPL).
@@ -43,8 +73,8 @@ showHelp = do
 --   • Executar código Brainfuck diretamente
 --   • Carregar arquivos com código (:l ou :load)
 --   • Sair do programa (:q ou :quit)
-repl :: IO ()
-repl = do
+repl :: Maybe FilePath -> IO ()
+repl currentFile = do
   putStr "> "
   line <- getLine
   let input = words line -- quebra a entrada em palavras separadas por espaço
@@ -52,30 +82,32 @@ repl = do
     -- Help menu
     (":h" : _) -> do
       showHelp
-      repl
+      repl currentFile
     (":help" : _) -> do
       showHelp
-      repl
+      repl currentFile
+    --
     -- Comando para sair
     (":q" : _) -> return ()
     (":quit" : _) -> return ()
+    --
+    -- Executa novamente arquivo previamente carregado via args ou via comando :load
+    (":r" : _) -> reloadFile currentFile
+    (":reload" : _) -> reloadFile currentFile
+    --
     -- Carrega e executa um arquivo Brainfuck
     [cmd, filepath] | cmd == ":l" || cmd == ":load" -> do
-      putStrLn $ "\n> Carregando arquivo: " ++ filepath
-      catchIOError
-        ( do
-            source <- readFile filepath
-            runBf source
-        )
-        (\_ -> putStrLn "> Erro ao ler o arquivo. Verifique o caminho e tente novamente.")
+      success <- loadFile filepath
       putStrLn ""
-      repl
-
+      if success
+        then repl (Just filepath)
+        else repl currentFile
+    --
     -- Entrada normal: interpretar código digitado
     _ -> do
       let source = unwords input
       runBf source
-      repl
+      repl currentFile
 
 -- | Função principal do programa e ponto de entrada da aplicação.
 --
@@ -105,17 +137,11 @@ main = do
   case args of
     -- Se for executado com um arquivo via argumento
     [inputFile] -> do
-      putStrLn $ "> Executando arquivo: " ++ inputFile
-      catchIOError
-        ( do
-            source <- readFile inputFile
-            case parse source of
-              Left err -> print err
-              Right prog -> run prog
-        )
-        (\_ -> putStrLn "> Erro ao ler o arquivo. Verifique o caminho e tente novamente.")
+      success <- loadFile inputFile
       putStrLn ""
-      repl
+      if success
+        then repl (Just inputFile)
+        else repl Nothing
 
     -- Caso contrário, abre o REPL normalmente
-    _ -> repl
+    _ -> repl Nothing
