@@ -2,8 +2,8 @@ name: Pre-release
 
 on:
   push:
-    tags:
-      - 'v*.*.*-beta-*'
+    branches:
+      - develop
 
 jobs:
   build-binaries:
@@ -132,6 +132,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Get version from cabal file
+      id: get-version
+      run: |
+        VERSION=$(grep -E "^version:" *.cabal | head -1 | awk '{print $2}')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Current version: $VERSION"
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
@@ -140,26 +147,24 @@ jobs:
     - name: Display structure of downloaded files
       run: ls -R binaries
 
-    - name: Extract version
-      id: version
+    - name: Generate pre-release tag
+      id: tag
       run: |
-        TAG="${{ github.ref_name }}"
-        # Remove prefixo 'v'
-        TAG="${TAG#v}"
-        # Remove último '-' e o sufixo
-        VERSION="${TAG%-*}"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        TAG="v${{ steps.get-version.outputs.version }}-beta-${SHORT_SHA}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT
 
     - name: Create Pre-release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref_name }}
-        name: Pre-release ${{ github.ref_name }}
+        tag_name: ${{ steps.tag.outputs.tag }}
+        name: Pre-release ${{ steps.tag.outputs.tag }}
         target_commitish: develop
         body: |
           Pré-lançamento
 
-          **Versão:** ${{ steps.version.outputs.version }}
+          **Versão:** ${{ steps.get-version.outputs.version }}-beta
           **Commit:** ${{ github.sha }}
           **Branch:** develop
 
