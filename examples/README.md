@@ -1,16 +1,35 @@
-# Exemplos de Programas em Brainfuck - 08/10/25
+# Exemplos de Programas em Brainfuck
 
-Este diretório contém programas de exemplo para testar o interpretador **BrainfucHS**.  
+Este diretório contém programas de exemplo para testar o interpretador **BrainfucHS**.
 Cada programa demonstra funcionalidades básicas da linguagem Brainfuck e valida o funcionamento do interpretador.
 
+Para exemplos utilizando o compilador, acesse [./compiler/README.md](./compiler/README.md).
+
 ---
+
+## Comandos Brainfuck
+
+| Comando | Descrição |
+|---------|-----------|
+| `>` | Move o ponteiro para a direita |
+| `<` | Move o ponteiro para a esquerda |
+| `+` | Incrementa o valor na célula atual |
+| `-` | Decrementa o valor na célula atual |
+| `.` | Imprime o caractere ASCII da célula atual |
+| `,` | Lê um caractere e armazena na célula atual |
+| `[` | Início de loop (while valor != 0) |
+| `]` | Fim de loop |
 
 ## 🔹 Programas
 
 ### 1. `saudacao.bf`
 Imprime a frase **"Hello World!"** no terminal.
 
-- **Propósito**: programa introdutório, usado para verificar se o interpretador funciona corretamente.  
+```bash
+cabal run brainfuchs -- ./examples/saudacao.bf
+```
+
+- **Propósito**: programa introdutório, usado para verificar se o interpretador funciona corretamente.
 - **Código comentado**:
 ```brainfuck
 ++++++++++                              // Célula 0 = 10 (contador para o loop de inicialização)
@@ -45,7 +64,11 @@ Imprime a frase **"Hello World!"** no terminal.
 ### 2. `soma.bf`
 Lê dois números (0–9) digitados pelo usuário e imprime a soma.
 
-- **Propósito**: demonstrar o uso de entrada (,) e operações aritméticas.  
+```bash
+cabal run brainfuchs -- ./examples/soma.bf
+```
+
+- **Propósito**: demonstrar o uso de entrada (,) e operações aritméticas.
 - **Código comentado**:
 ```brainfuck
 ,                         // Lê o primeiro número do usuário
@@ -62,7 +85,11 @@ Lê dois números (0–9) digitados pelo usuário e imprime a soma.
 ### 3. `contador.bf`
 Imprime a sequência de números de 0 até 9.
 
-- **Propósito**: demonstrar loops e manipulação de células. 
+```bash
+cabal run brainfuchs -- ./examples/contador.bf
+```
+
+- **Propósito**: demonstrar loops e manipulação de células.
 - **Código comentado**:
 ```brainfuck
 ++++++++++++++++++++++++++++++++++++++++++++++++   // Célula 0 = 48 (código ASCII de '0')
@@ -73,7 +100,7 @@ Imprime a sequência de números de 0 até 9.
   +                                              // Incrementa célula 0 (próximo dígito ASCII)
   >                                              // Vai para célula 1
   -                                              // Decrementa contador
-]                                                // Repete até célula 1 = 0                   
+]                                                // Repete até célula 1 = 0
 ```
 
 **Saída:**
@@ -83,7 +110,11 @@ Imprime a sequência de números de 0 até 9.
 ### 4. `repetidor.bf`
 Repete tudo que o usuário digitar, até o fim da entrada.
 
-- **Propósito**: demonstrar entrada contínua e saída imediata. 
+```bash
+cabal run brainfuchs -- ./examples/repetidor.bf
+```
+
+- **Propósito**: demonstrar entrada contínua e saída imediata.
 - **Código comentado**:
 ```brainfuck
 ,                         // Lê um caractere do usuário
@@ -92,7 +123,7 @@ Repete tudo que o usuário digitar, até o fim da entrada.
   [-]                     // Zera a célula atual
   ,                       // Lê o próximo caractere
 ]                         // Repete até fim da entrada
-                 
+
 ```
 
 **Saída:**
@@ -102,7 +133,11 @@ Repete tudo que o usuário digitar, até o fim da entrada.
 ### 5. `antesuc.bf`
 Imprime o caractere **anterior**, **o próprio caractere** e o **sucessor**.
 
-- **Propósito**: demonstrar manipulação de células e operações aritméticas simples.  
+```bash
+cabal run brainfuchs -- ./examples/antesuc.bf
+```
+
+- **Propósito**: demonstrar manipulação de células e operações aritméticas simples.
 - **Código comentado**:
 ```brainfuck
 ,       // Lê um caractere digitado pelo usuário e armazena na célula atual
@@ -120,8 +155,11 @@ Imprime o caractere **anterior**, **o próprio caractere** e o **sucessor**.
 
 ### 6. `moveponteiro.bf`
 Move o ponteiro para antes de qualquer célula.
+```bash
+cabal run brainfuchs -- ./examples/moveponteiro.bf
+```
 
-- **Propósito**: demonstrar manipulação de ponteiro.  
+- **Propósito**: demonstrar manipulação de ponteiro.
 - **Código comentado**:
 ```brainfuck
 <   // Move o ponteiro para a célula à esquerda
@@ -134,8 +172,11 @@ Move o ponteiro para antes de qualquer célula.
 
 ### 7. `tab.bf`
 Imprime um TAB.
+```bash
+cabal run brainfuchs -- ./examples/tab.bf
+```
 
-- **Propósito**: demonstrar manipulação de valores e impressão de caracteres especiais. 
+- **Propósito**: demonstrar manipulação de valores e impressão de caracteres especiais.
 - **Código comentado**:
 ```brainfuck
 +++          // Inicializa célula 0 com valor 3 (contador para o loop)
@@ -143,7 +184,7 @@ Imprime um TAB.
   >+++       // Incrementa célula 1 em 3
   <-         // Volta para célula 0 e decrementa
 ]            // Fim do loop (repete 3 vezes)
->.           // Move para célula 1 e imprime o valor correspondente a um TAB (ASCII 9)        
+>.           // Move para célula 1 e imprime o valor correspondente a um TAB (ASCII 9)
 ```
 
 **Saída:**
@@ -152,15 +193,19 @@ Imprime um TAB.
 
 ### 8. `zero.bf`
 Imprime o número zero.
+```bash
+cabal run brainfuchs -- ./examples/zero.bf
+```
 
-- **Propósito**: demonstrar inicialização de célula e impressão de um caractere específico. 
+- **Propósito**: demonstrar inicialização de célula e impressão de um caractere específico.
 - **Código comentado**:
 ```brainfuck
-++++++++++++++++++++++++++++++++++++++++++++++++.  
-// Incrementa célula 0 48 vezes (ASCII de '0') e imprime                
+++++++++++++++++++++++++++++++++++++++++++++++++.
+// Incrementa célula 0 48 vezes (ASCII de '0') e imprime
 ```
 
 **Saída:**
 
 ![resultado zero](./prints/resultado-zero.png)
+
 

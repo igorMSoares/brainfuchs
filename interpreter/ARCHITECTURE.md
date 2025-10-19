@@ -187,12 +187,21 @@ run :: Program -> IO ()
 
 ### 5.4. O REPL
 
-O Read-Eval-Print-Loop é a interface voltada ao usuário. Ele orquestra o processo de ler entrada do usuário, fazer parsing, executar, e fazer loop.
+O Read‑Eval‑Print‑Loop (REPL) é a interface interativa voltada ao usuário. Ele lê a entrada, faz o parsing, executa o código Brainfuck e repete o ciclo.
+
+A função `repl` aceita opcionalmente um `FilePath` que, se fornecido, será interpretado imediatamente e armazenado para permitir recarga posterior.
 
 ```haskell
 -- O loop principal do REPL.
-repl :: IO ()
+repl :: Maybe FilePath -> IO ()
 ```
+
+Enquanto o REPL está em execução, o usuário pode executar comandos como:
+
+- `:load   (:l) ./caminho/arquivo.bf`: carrega e executa um arquivo Brainfuck, tornando‑o o "arquivo corrente".
+- `:reload (:r)`: reexecuta o último arquivo carregado via `:load` ou passado inicialmente à função `repl`.
+
+Esses comandos permitem alternar entre edição direta no prompt e execução de scripts externos sem reiniciar o interpretador.
 
 #### 5.4.1. Considerações de I/O
 
