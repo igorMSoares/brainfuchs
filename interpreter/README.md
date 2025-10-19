@@ -36,15 +36,35 @@ O projeto segue a estrutura padrão de projetos Haskell para garantir uma separa
 - **`interpreter/src/Brainfuck`**: Contém a biblioteca central. Este é o componente reutilizável que define a linguagem Brainfuck, parser e motor de avaliação.
 - **`app`**: Contém o ponto de entrada do executável. O arquivo `Main.hs` neste diretório é responsável por conectar os componentes da biblioteca em um REPL interativo.
 
+## Executável pré-compilado
+
+Baixe a versão mais recente para seu sistema operacional na [página de releases](https://github.com/igorMSoares/brainfuchs/releases/latest).
+
 ## Compilação e Execução
 
 O projeto pode ser compilado utilizando Cabal como ferramenta de build.
 
-Para compilar e executar o projeto usando Cabal, execute na raiz do projeto:
+- Para compilar e executar o projeto usando Cabal, execute na raiz do projeto:
 
 ```bash
 cabal run brainfuchs
 ```
+
+- É possível passar como argumento o caminho de um arquivo com código brainfuck para ser interpretado:
+
+```bash
+cabal run brainfuchs -- ./examples/saudacao.bf
+```
+
+- Comandos disponíveis no REPL:
+
+```
+:load   (:l) ./caminho/arquivo.bf       carrega e executa um arquivo brainfuck
+:reload (:r)                            executa novamente arquivo previamente carregado
+:quit   (:q)                            encerra o REPL
+:help   (:h)                            exibe os comandos disponíveis
+```
+
 
 ### Linux: Bibliotecas compartilhadas
 
