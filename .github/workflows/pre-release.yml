@@ -88,11 +88,12 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       shell: bash
       run: |
+        TAG="${{ github.ref_name }}"
         BIN_PATH="${{ steps.get-compiler-binary.outputs.binary-path }}"
         # Substitui '\' por '/' para normalização de caminhos no Windows usando bash shell.
         BIN_PATH=$(echo "$BIN_PATH" | sed 's#\\#/#g')
 
-        cp "$BIN_PATH" "release/bfhsc-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+        cp "$BIN_PATH" "release/bfhsc-$TAG-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
 
     - name: Get interpreter binary name
       id: get-binary
@@ -110,11 +111,26 @@ jobs:
     - name: Copy interpreter binary to release directory
       shell: bash
       run: |
+        TAG="${{ github.ref_name }}"
         BIN_PATH="${{ steps.get-binary.outputs.binary-path }}"
         # Substitui '\' por '/' para normalização de caminhos no Windows usando bash shell.
         BIN_PATH=$(echo "$BIN_PATH" | sed 's#\\#/#g')
 
-        cp "$BIN_PATH" "release/brainfuchs-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+        cp "$BIN_PATH" "release/brainfuchs-$TAG-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+
+    - name: Create archive (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        TAG="${{ github.ref_name }}"
+        cd release
+        tar -czf brainfuchs-$TAG-${{ matrix.artifact-name }}.tar.gz *
+
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        TAG="${{ github.ref_name }}"
+        cd release
+        7z a brainfuchs-$TAG-${{ matrix.artifact-name }}.zip *
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -150,6 +166,35 @@ jobs:
         VERSION="${TAG%-*}"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+    - name: Extract changelog
+      id: changelog
+      run: |
+        if [ ! -f CHANGELOG.md ]; then
+          # Fallback
+          RELEASE_NOTE="Versão beta para testes."
+          echo  "release_note=$RELEASE_NOTE" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        RELEASE_NOTE=$(awk -v version="Unreleased" '
+          BEGIN { print_section=0 }
+          /^## / {
+            if (print_section) exit
+            if ($0 ~ version) {
+              print_section=1
+              next
+            }
+          }
+          print_section { print }
+        ' CHANGELOG.md);
+
+        echo "release_note<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$RELEASE_NOTE" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+
+        echo "Pre-Release notes:"
+        echo "$RELEASE_NOTE"
+
     - name: Create Pre-release
       uses: softprops/action-gh-release@v2
       with:
@@ -163,7 +208,9 @@ jobs:
           **Commit:** ${{ github.sha }}
           **Branch:** develop
 
-          ⚠️ Versão beta para testes.
+          ${{ steps.changelog.outputs.release_note }}
+
+          Veja [CHANGELOG.md](https://github.com/igorMSoares/brainfuchs/blob/${{ github.ref_name }}/CHANGELOG.md)  para mais detalhes.
         draft: false
         prerelease: true
         files: |
