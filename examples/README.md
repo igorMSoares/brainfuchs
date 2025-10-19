@@ -3,6 +3,8 @@
 Este diretório contém programas de exemplo para testar o interpretador **BrainfucHS**.
 Cada programa demonstra funcionalidades básicas da linguagem Brainfuck e valida o funcionamento do interpretador.
 
+Para exemplos utilizando o compilador, acesse [./compiler/README.md](./compiler/README.md).
+
 ---
 
 ## Comandos Brainfuck
