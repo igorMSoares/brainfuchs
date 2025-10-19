@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               brainfuchs
-version:            0.1.1
+version:            0.2.1
 synopsis:           Minimal Brainfuck interpreter in Haskell
 description:        Um interpretador minimalista para a linguagem Brainfuck, escrito em Haskell.
 license:            MIT

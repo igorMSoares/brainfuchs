@@ -8,6 +8,14 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## [0.2.1] - 2025-10-19
+
+### Added
 - Comprehensive test suite with property-based and integration testing:
   - **`ParserProps`** - Syntactic validation: accepts valid syntax, rejects malformed brackets, ignores invalid characters
   - **`AstProps`** - Structural validation: verifies nesting depth, instruction count preservation, and empty loop detection
@@ -61,6 +69,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
   - `Brainfuck.Types` – Defines the core types (e.g. Tape, Instructions).
 - Executable `brainfuchs` with CLI entry point in `app/Main.hs`.
 
-[Unreleased]: https://github.com/igorMSoares/brainfuchs/compare/v0.1.1...develop
+[Unreleased]: https://github.com/igorMSoares/brainfuchs/compare/v0.2.1...develop
+[0.2.1]: https://github.com/igorMSoares/brainfuchs/compare/v0.1.1...v0.2.1
 [0.1.1]: https://github.com/igorMSoares/brainfuchs/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/igorMSoares/brainfuchs/releases/tag/v0.1.0
