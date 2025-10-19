@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+    tags-ignore:
+      - 'v*.*.*-beta-*'
 
 jobs:
   validate-tag:
@@ -116,11 +118,12 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       shell: bash
       run: |
+        VERSION="v${{ needs.validate-tag.outputs.version }}"
         BIN_PATH="${{ steps.get-compiler-binary.outputs.binary-path }}"
         # Substitui '\' por '/' para normalização de caminhos no Windows usando bash shell.
         BIN_PATH=$(echo "$BIN_PATH" | sed 's#\\#/#g')
 
-        cp "$BIN_PATH" "release/bfhsc-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+        cp "$BIN_PATH" "release/bfhsc-$VERSION-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
 
     - name: Get interpreter binary name
       id: get-binary
@@ -138,11 +141,12 @@ jobs:
     - name: Copy interpreter binary to release directory
       shell: bash
       run: |
+        VERSION="v${{ needs.validate-tag.outputs.version }}"
         BIN_PATH="${{ steps.get-binary.outputs.binary-path }}"
         # Substitui '\' por '/' para normalização de caminhos no Windows usando bash shell.
         BIN_PATH=$(echo "$BIN_PATH" | sed 's#\\#/#g')
 
-        cp "$BIN_PATH" "release/brainfuchs-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
+        cp "$BIN_PATH" "release/brainfuchs-$VERSION-${{ matrix.artifact-name }}${{ matrix.binary-extension }}"
 
     - name: Create archive (Unix)
       if: matrix.os != 'windows-latest'
