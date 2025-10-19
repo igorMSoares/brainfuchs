@@ -27,10 +27,25 @@ O ponto de entrada para a ferramenta de linha de comando `bfhsc` não está nest
 
 ## Como Construir e Usar
 
-Todo o projeto é gerenciado pelo arquivo `brainfuchs.cabal` na raiz. Os comandos devem ser executados a partir do diretório raiz.
+### Executável pré-compilado
+
+Baixe a versão mais recente do compilador na [página de releases](https://github.com/igorMSoares/brainfuchs/releases/latest).
 
 ### Construir a Biblioteca do Compilador
 
-Para compilar apenas esta biblioteca (e suas dependências):
+Todo o projeto é gerenciado pelo arquivo `brainfuchs.cabal` na raiz. Os comandos devem ser executados a partir do diretório raiz do projeto.
+
+- Para compilar apenas esta biblioteca (e suas dependências):
 ```bash
-cabal build brainfuchs-compiler
+cabal build bfhsc
+```
+
+- Para executar o compilador:
+
+```bash
+cabal run bfhsc -- ./examples/saudacao.bf out
+
+# rodar programa compilado:
+./out
+```
+
