@@ -73,6 +73,7 @@ cabal run brainfuchs -- ./examples/soma.bf
 ```brainfuck
 ,                         // Lê o primeiro número do usuário
 >++++++[<-------->-]      // Ajusta valor de ASCII para número
+,                         // Lê a quebra de linha da entrada do primeiro número
 ,                         // Lê o segundo número
 [<+>-]                     // Soma o segundo número ao primeiro
 <.                        // Imprime o resultado
