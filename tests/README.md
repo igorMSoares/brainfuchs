@@ -1,7 +1,7 @@
-# Testes do Interpretador Brainfuck
+# Testes do Interpretador e do Compilador Brainfuck
 
-Esse diretório contém os módulos de testes automatizados do projeto, com o objetivo de garantir o funcionamento correto de todas as camadas do interpretador.
-Este documento especifica o propósito e as propriedades testadas para cada módulo de teste (`QuickCheck` e `Hspec`) que compõe o sistema de validação do interpretador Brainfuck.
+Esse diretório contém os módulos de testes automatizados do projeto, com o objetivo de garantir o funcionamento correto de todas as camadas do interpretador e do compilador.
+Este documento especifica o propósito e as propriedades testadas para cada módulo de teste (`QuickCheck` e `Hspec`) que compõe o sistema de validação do interpretador e do compilador Brainfuck.
 
 Para rodar os testes, execute `cabal test --test-options="--no-color"`.
 
@@ -9,7 +9,7 @@ Para rodar os testes, execute `cabal test --test-options="--no-color"`.
 
 ## 1. Visão Geral
 
-O interpretador Brainfuck é composto por várias etapas: análise sintática, geração de AST, execução e compilação.  
+O interpretador e o compilador Brainfuck são compostos por várias etapas: análise sintática, geração de AST, execução e compilação.  
 Esta pasta reúne os testes responsáveis por verificar o comportamento de cada etapa.
 
 ---
