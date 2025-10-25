@@ -114,6 +114,62 @@ O `gcc` ([GNU Compiler](https://gcc.gnu.org/)) também é necessário para o `bf
 
 Este projeto é um exercício prático desenvolvido coletivamente pelos estudantes da disciplina de **Programação Funcional**, ministrada pelo **Prof. Dr. Alexandre Garcia de Oliveira**, no curso de **Análise e Desenvolvimento de Sistemas** da **FATEC Baixada Santista**.
 
+## Contribuidores
+
+- Interpretador brainfuchs
+
+  [![@koobzaar](https://github.com/koobzaar.png?size=64)](https://github.com/koobzaar)
+
+- Compilador bfhsc
+
+  [![@KirinRyu](https://github.com/KirinRyu.png?size=64)](https://github.com/KirinRyu)
+
+- Testes do interpretador
+
+  [![@natanaelsantana](https://github.com/natanaelsantana.png?size=64)](https://github.com/natanaelsantana)
+  <a href="https://github.com/gabivieiraf">
+  <img src="https://github.com/gabivieiraf.png?size=64" alt="@gabivieiraf" width="64" height="64">
+  </a>
+  [![@ArthurDRF](https://github.com/ArthurDRF.png?size=64)](https://github.com/ArthurDRF)
+  [![@ycsal](https://github.com/ycsal.png?size=64)](https://github.com/ycsal)
+
+- Testes do compilador
+
+  [![@LeoAoki](https://github.com/LeoAoki.png?size=64)](https://github.com/LeoAoki)
+  <a href="https://github.com/v1ckkky">
+  <img src="https://github.com/v1ckkky.png?size=64" alt="@v1ckkky" width="64" height="64">
+  </a>
+
+- Exemplos de uso
+
+  [![@giovannapennisi](https://github.com/giovannapennisi.png?size=64)](https://github.com/giovannapennisi)
+  [![@sofiaclsantos](https://github.com/sofiaclsantos.png?size=64)](https://github.com/sofiaclsantos)
+
+- Carregamento de arquivo no interpretador
+
+  [![@clarabatista](https://github.com/clarabatista.png?size=64)](https://github.com/clarabatista)
+  [![@brunocperez](https://github.com/brunocperez.png?size=64)](https://github.com/brunocperez)
+  [![@alexiiavieirac](https://github.com/alexiiavieirac.png?size=64)](https://github.com/alexiiavieirac)
+  <a href="https://github.com/BrunoFariasAmaral">
+  <img src="https://github.com/BrunoFariasAmaral.png?size=64" alt="@BrunoFariasAmaral" width="64" height="64">
+  </a>
+
+- Documentação e configuração cabal
+
+  [![@nathanholtz](https://github.com/nathanholtz.png?size=64)](https://github.com/nathanholtz)
+
+- Apresentação
+
+  [![@paulablascke](https://github.com/paulablascke.png?size=64)](https://github.com/paulablascke)
+  <a href="https://github.com/DeboraFFSantos">
+  <img src="https://github.com/DeboraFFSantos.png?size=64" alt="@DeboraFFSantos" width="64" height="64">
+  </a>
+
+- Gestão e Apoio Técnico
+
+  [![@paulablascke](https://github.com/paulablascke.png?size=64)](https://github.com/paulablascke)
+  [![@igorMSoares](https://github.com/igorMSoares.png?size=64)](https://github.com/igorMSoares)
+
 ## Licença
 
 Licenciado sob a [Licença MIT](./LICENSE).
